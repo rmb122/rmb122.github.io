@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="$PROJECT_DIR$/.deploy_git" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/.deploy_git/.deploy_git" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/.deploy_git/.deploy_git/.deploy_git" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/.deploy_git/.deploy_git/.deploy_git/themes/next/source/lib/fancybox" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/.deploy_git/.deploy_git/.deploy_git/themes/next/source/lib/pace" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/.deploy_git/.deploy_git/.deploy_git/themes/next/source/lib/reading_progress" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/.deploy_git/.deploy_git/themes/next/source/lib/fancybox" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/.deploy_git/.deploy_git/themes/next/source/lib/pace" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/.deploy_git/.deploy_git/themes/next/source/lib/reading_progress" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/.deploy_git/themes/next/source/lib/fancybox" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/.deploy_git/themes/next/source/lib/pace" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/.deploy_git/themes/next/source/lib/reading_progress" vcs="Git" />
+  </component>
+</project>
