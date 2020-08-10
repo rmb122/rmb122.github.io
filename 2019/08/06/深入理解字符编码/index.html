@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico">
+  <link rel="mask-icon" href="/images/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"rmb122.com","root":"/","scheme":"Mist","version":"8.0.0-rc.2","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":"flat"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="以前对 UTF-8, UTF-16, unicode, GBK, ASCII 之类的都是一知半解, 其实深入之后了解这些并不困难.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入理解字符编码">
+<meta property="og:url" content="https://rmb122.com/2019/08/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E5%AD%97%E7%AC%A6%E7%BC%96%E7%A0%81/index.html">
+<meta property="og:site_name" content="Rmb122&#39;s Notebook">
+<meta property="og:description" content="以前对 UTF-8, UTF-16, unicode, GBK, ASCII 之类的都是一知半解, 其实深入之后了解这些并不困难.">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-08-06T08:13:47.000Z">
+<meta property="article:modified_time" content="2019-08-06T11:41:27.152Z">
+<meta property="article:author" content="rmb122">
+<meta property="article:tag" content="misc">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://rmb122.com/2019/08/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E5%AD%97%E7%AC%A6%E7%BC%96%E7%A0%81/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>深入理解字符编码 | Rmb122's Notebook</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Rmb122's Notebook" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+        <span class="toggle-line toggle-line-first"></span>
+        <span class="toggle-line toggle-line-middle"></span>
+        <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Rmb122's Notebook</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-links">
+
+    <a href="/links/" rel="section"><i class="fa fa-link fa-fw"></i>友链</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://rmb122.com/2019/08/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E5%AD%97%E7%AC%A6%E7%BC%96%E7%A0%81/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="rmb122">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Rmb122's Notebook">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          深入理解字符编码
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-08-06 16:13:47" itemprop="dateCreated datePublished" datetime="2019-08-06T16:13:47+08:00">2019-08-06</time>
+            </span>
+
+          
+            <span id="/2019/08/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E5%AD%97%E7%AC%A6%E7%BC%96%E7%A0%81/" class="post-meta-item leancloud_visitors" data-flag-title="深入理解字符编码" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/08/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E5%AD%97%E7%AC%A6%E7%BC%96%E7%A0%81/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2019/08/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E5%AD%97%E7%AC%A6%E7%BC%96%E7%A0%81/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>以前对 UTF-8, UTF-16, unicode, GBK, ASCII 之类的都是一知半解, 其实深入之后了解这些并不困难.  </p>
+<a id="more"></a>
+
+<h2 id="unicode"><a href="#unicode" class="headerlink" title="unicode"></a>unicode</h2><p>其实这是最简单的, unicode 就是一套标准, 把世界上每个存在的字符 (甚至包括 emoji) 都编一个号, 可以在 <a href="https://unicode-table.com/cn/" target="_blank" rel="noopener">https://unicode-table.com/cn/</a> 看到全部的编码,<br>把这个编的号, 一般叫做 code point, 也就是码点. 同时也设定了几个编码的标准, 也就是 UTF-8, UTF-16 等等, 毕竟直接把码点转二进制太浪费空间了.  </p>
+<p>而这些编码, 就是把这些码点保存为计算机可以识别的二进制形式.  </p>
+<h2 id="UTF-8"><a href="#UTF-8" class="headerlink" title="UTF-8"></a>UTF-8</h2><p>UTF-8 就是这些编码的一种, 详细可以参考<a href="https://zh.wikipedia.org/wiki/UTF-8" target="_blank" rel="noopener">维基百科</a>, 简单来说, 就是把码点转为二进制后,<br>然后为了节省空间, 把不同大小的码点转为不同长度的字节序列, 这就是他天才的地方, 用变长编码来节省长度.  </p>
+<p>这里以 <code>啊</code> 为例, 它的码点是 <code>0x554a</code>, 在 <code>U+0800~U+FFFF</code> 的范围内, 二进制是 <code>0b101010101001010</code>,<br>那么根据定义, 他的保存方式是 <code>1110xxxx 10xxxxxx 10xxxxxx</code>, 我们将这个码点的二进制以大端的方式填入其中,<br>得到 <code>1110|0101 10|010101 10|001010</code>, 也就是 <code>b&#39;\xe5\x95\x8a&#39;</code>, 可以尝试在 python 解码, 得到的就是 <code>啊</code>.  </p>
+<p>而在 <code>0x00 ~ 0xFF</code> 范围内, UTF-8 其实就被退化为 ASCII 了, 一是为了兼容性, 二是确实 ASCII 所涵盖的符号, 确实用的非常多.<br>这里可以手动写一些 UTF-8 的函数来加深学习, 因为是变长的, 所以来算长度, 以及截取相对比较麻烦.<br>这里用我用 c 写, 感觉非常的爽, 就像在高速公路上飙车, 控制不好就会翻车 (Segment fault) 233, 但是确实是最接近这些字符编码本来的样子.<br>没有了 python 上各种的包装.  </p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;memory.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">char</span>* <span class="title">read_file</span><span class="params">(<span class="keyword">char</span> *filename)</span> </span>&#123;</span><br><span class="line">    FILE *fd = fopen(filename, <span class="string">"r"</span>);</span><br><span class="line"></span><br><span class="line">    fseek(fd, <span class="number">0</span>, SEEK_END);</span><br><span class="line">    <span class="keyword">long</span> sz = ftell(fd);</span><br><span class="line">    fseek(fd, <span class="number">0</span>, SEEK_SET);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">char</span> *content = <span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(<span class="keyword">char</span>) * sz);</span><br><span class="line">    fread(content, <span class="keyword">sizeof</span>(<span class="keyword">char</span>), sz, fd);</span><br><span class="line"></span><br><span class="line">    fclose(fd);</span><br><span class="line">    <span class="keyword">return</span> content;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">utf8_strlen</span><span class="params">(<span class="keyword">char</span> *s)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> length = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (*s) &#123;</span><br><span class="line">        <span class="keyword">if</span> ((*s &amp; <span class="number">0b11000000</span>) != <span class="number">0b10000000</span>) &#123;</span><br><span class="line">            length += <span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        s++;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> length;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">char</span>* <span class="title">codepoint_to_utf8</span><span class="params">(<span class="keyword">unsigned</span> <span class="keyword">int</span> codepoint, <span class="keyword">int</span> *sz)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">char</span> *s;</span><br><span class="line">    <span class="keyword">if</span> (codepoint &lt; <span class="number">0x80</span>) &#123;</span><br><span class="line">        *sz = <span class="number">1</span>;</span><br><span class="line">        s = <span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(<span class="keyword">char</span>));</span><br><span class="line">        *s = codepoint;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (codepoint &lt; <span class="number">0x800</span>) &#123;</span><br><span class="line">        *sz = <span class="number">2</span>;</span><br><span class="line">        s = <span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(<span class="keyword">char</span>) * <span class="number">2</span>);</span><br><span class="line">        *(s + <span class="number">1</span>) = <span class="number">0b10000000</span> | (codepoint &amp; <span class="number">0b00111111</span>);</span><br><span class="line">        *s = <span class="number">0b11000000</span> | ((codepoint &gt;&gt; <span class="number">6</span>) &amp; <span class="number">0b00011111</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (codepoint &lt; <span class="number">0x10000</span>) &#123;</span><br><span class="line">        *sz = <span class="number">3</span>;</span><br><span class="line">        s = <span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(<span class="keyword">char</span>) * <span class="number">3</span>);</span><br><span class="line">        *(s + <span class="number">2</span>) = <span class="number">0b10000000</span> | (codepoint &amp; <span class="number">0b00111111</span>);</span><br><span class="line">        *(s + <span class="number">1</span>) = <span class="number">0b10000000</span> | ((codepoint &gt;&gt; <span class="number">6</span>) &amp; <span class="number">0b00111111</span>);</span><br><span class="line">        *s = <span class="number">0b11100000</span> | ((codepoint &gt;&gt; <span class="number">12</span>) &amp; <span class="number">0b00001111</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        *sz = <span class="number">4</span>;</span><br><span class="line">        s = <span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(<span class="keyword">char</span>) * <span class="number">4</span>);</span><br><span class="line">        *(s + <span class="number">3</span>) = <span class="number">0b10000000</span> | (codepoint &amp; <span class="number">0b00111111</span>);</span><br><span class="line">        *(s + <span class="number">2</span>) = <span class="number">0b10000000</span> | ((codepoint &gt;&gt; <span class="number">6</span>) &amp; <span class="number">0b00111111</span>);</span><br><span class="line">        *(s + <span class="number">1</span>) = <span class="number">0b10000000</span> | ((codepoint &gt;&gt; <span class="number">12</span>) &amp; <span class="number">0b00111111</span>);</span><br><span class="line">        *s = <span class="number">0b11110000</span> | ((codepoint &gt;&gt; <span class="number">18</span>) &amp; <span class="number">0b00000111</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> s;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">get_tail_length</span><span class="params">(<span class="keyword">char</span> c)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> length = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">if</span> ((c &amp; <span class="number">0b11111000</span>) == <span class="number">0b11110000</span>) &#123;</span><br><span class="line">        length = <span class="number">3</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> ((c &amp; <span class="number">0b11110000</span>) == <span class="number">0b11100000</span>) &#123;</span><br><span class="line">        length = <span class="number">2</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> ((c &amp; <span class="number">0b11100000</span>) == <span class="number">0b11000000</span>) &#123;</span><br><span class="line">        length = <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> length;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">char</span>* <span class="title">utf8_substr</span><span class="params">(<span class="keyword">char</span>* s, <span class="keyword">int</span> start, <span class="keyword">int</span> length)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> curr_pos = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">int</span> byte_count = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">int</span> offset = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">char</span> *new_s;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (curr_pos &lt; start &amp;&amp; *s) &#123;</span><br><span class="line">        <span class="keyword">if</span> ((*s &amp; <span class="number">0b11000000</span>) != <span class="number">0b10000000</span>) &#123;</span><br><span class="line">            curr_pos += <span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        s += (get_tail_length(*s) + <span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    curr_pos = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">while</span> (curr_pos &lt; length &amp;&amp; *s) &#123;</span><br><span class="line">        <span class="keyword">if</span> ((*s &amp; <span class="number">0b11000000</span>) != <span class="number">0b10000000</span>) &#123;</span><br><span class="line">            curr_pos += <span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        s++;</span><br><span class="line">        byte_count++;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (curr_pos &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        offset = get_tail_length(*(s - <span class="number">1</span>));</span><br><span class="line"></span><br><span class="line">        new_s = <span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(<span class="keyword">char</span>) * (byte_count + offset + <span class="number">1</span>));</span><br><span class="line">        <span class="built_in">memcpy</span>(new_s, s - byte_count, byte_count + offset);</span><br><span class="line">        new_s[byte_count + offset] = <span class="string">'\0'</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        new_s = <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> new_s;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">utf8_to_codepoint</span><span class="params">(<span class="keyword">char</span> *s)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> length = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">int</span> codepoint = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((*s &amp; <span class="number">0b11111000</span>) == <span class="number">0b11110000</span>) &#123;</span><br><span class="line">        length = <span class="number">4</span>;</span><br><span class="line">        codepoint = *s &amp; <span class="number">0b111</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> ((*s &amp; <span class="number">0b11110000</span>) == <span class="number">0b11100000</span>) &#123;</span><br><span class="line">        length = <span class="number">3</span>;</span><br><span class="line">        codepoint = *s &amp; <span class="number">0b1111</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> ((*s &amp; <span class="number">0b11100000</span>) == <span class="number">0b11000000</span>) &#123;</span><br><span class="line">        length = <span class="number">2</span>;</span><br><span class="line">        codepoint = *s &amp; <span class="number">0b11111</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        length = <span class="number">1</span>;</span><br><span class="line">        codepoint = *s;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt; length; i++) &#123;</span><br><span class="line">        s++;</span><br><span class="line">        codepoint &lt;&lt;= <span class="number">6</span>;</span><br><span class="line">        codepoint = codepoint | (*s &amp; <span class="number">0b00111111</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> codepoint;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">    char *content = read_file("/home/rmb122/temp/example.txt");</span></span><br><span class="line"><span class="comment">    printf("%d", utf8_strlen(content));</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    free(content);</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"%d\n"</span>, utf8_strlen(<span class="string">"一二三四五六一二三四五六1234"</span>));</span><br><span class="line"></span><br><span class="line">    <span class="keyword">char</span> *s;</span><br><span class="line">    <span class="keyword">int</span> sz;</span><br><span class="line"></span><br><span class="line">    s = codepoint_to_utf8(<span class="number">21834</span>, &amp;sz);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"%.*s\n"</span>, sz, s);</span><br><span class="line">    <span class="built_in">free</span>(s);</span><br><span class="line"></span><br><span class="line">    s = utf8_substr(<span class="string">"一2三四5六7八9"</span>, <span class="number">1</span>, <span class="number">1</span>);</span><br><span class="line">    <span class="keyword">if</span> (s) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"%s\n"</span>, s);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"%s"</span>, <span class="string">"null"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">free</span>(s);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"%d\n"</span>, utf8_to_codepoint(<span class="string">"五"</span>));</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="UTF-16"><a href="#UTF-16" class="headerlink" title="UTF-16"></a>UTF-16</h2><p>说实话, 我觉得 UTF-16 已经可以被扔进历史的垃圾桶, 然而 <code>Windows</code> 还依然使用 233.<br>他本身是为了保证固定长度而设计的, 因为两个字节 256*256, 可以表示 65536 种字符,<br>在以前 unicode 收录字符比较少的情况下是完全够的, 这样每个字符都保存为两个字节长,<br>可以节省运算, 虽然浪费了挺多的空间, 但是确实很方便.  </p>
+<p>然而现在上面的网站上看到,  unicode 收录的字符早已超过了 65536 个, 也就意味着码点超过了 <code>0xFFFF</code>.<br>这里以 <code>𐎠</code> 这个字符为例  </p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="string">"啊"</span>.encode(<span class="string">'utf-16be'</span>)</span><br><span class="line"><span class="string">b'UJ'</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="string">"𐎠"</span>.encode(<span class="string">'utf-16be'</span>)</span><br><span class="line"><span class="string">b'\xd8\x00\xdf\xa0'</span></span><br></pre></td></tr></table></figure>
+<p>可以看到, 实际上保存这个字符用了 4 个字节. 历史的发展使得 UTF-16 唯一的好处已经荡然无存.<br>而且为了保存大端小端的额外信息, 还用了 <code>BOM</code> 这种丑陋的设计, 希望 <code>Windows</code> 也能早点淘汰掉 UTF-16 把 233</p>
+<h2 id="GBK"><a href="#GBK" class="headerlink" title="GBK"></a>GBK</h2><p>这个是我国自创的编码标准, 优点非常明显, 节省空间, 相当于缩小版的 UTF-8 (当然用的码点表和具体实现跟 unicode 不同),<br>因为它只需要表达 ASCII + 汉字的字符空间就够了. 当然缺点也非常明显, 不能表达 ASCII + 汉字之外的字符, 也就注定只能在中国使用,<br>无法国际化, 而且实际上很多国家都有一套自创字符集, 这更促进了 unicode 的诞生. </p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>rmb122
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://rmb122.com/2019/08/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E5%AD%97%E7%AC%A6%E7%BC%96%E7%A0%81/" title="深入理解字符编码">https://rmb122.com/2019/08/06/深入理解字符编码/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章仅仅记录学习过程, 并不保证文章完全正确, 如果你有任何疑问或者找出问题, 欢迎在评论区指正.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/misc/" rel="tag"># misc</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/07/31/PHP-%E6%89%A9%E5%B1%95%E5%AD%A6%E4%B9%A0/" rel="prev" title="PHP 扩展学习">
+      <i class="fa fa-chevron-left"></i> PHP 扩展学习
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/08/28/Ogeek-Easy-Realworld-Challenge-1-2-Writeup/" rel="next" title="Ogeek Easy Realworld Challenge 1&2 Writeup">
+      Ogeek Easy Realworld Challenge 1&2 Writeup <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#unicode"><span class="nav-number">1.</span> <span class="nav-text">unicode</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#UTF-8"><span class="nav-number">2.</span> <span class="nav-text">UTF-8</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#UTF-16"><span class="nav-number">3.</span> <span class="nav-text">UTF-16</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GBK"><span class="nav-number">4.</span> <span class="nav-text">GBK</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="rmb122"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">rmb122</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">66</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">23</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/rmb122" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;rmb122" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/atom.xml" title="RSS → &#x2F;atom.xml"><i class="fa fa-rss fa-fw"></i>RSS</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">rmb122</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+<script>
+  (function() {
+    function leancloudSelector(url) {
+      url = encodeURI(url);
+      return document.getElementById(url).querySelector('.leancloud-visitors-count');
+    }
+
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = decodeURI(visitors.id);
+      var title = visitors.dataset.flagTitle;
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            leancloudSelector(url).innerText = counter.time + 1;
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .catch(error => {
+                console.error('Failed to save visitor count', error);
+              });
+          } else {
+              leancloudSelector(url).innerText = 'Counter not initialized! More info at console err msg.';
+              console.error('ATTENTION! LeanCloud counter has security bug, see how to solve it here: https://github.com/theme-next/hexo-leancloud-counter-security. \n However, you can still use LeanCloud without security, by setting `security` option to `false`.');
+            
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return decodeURI(element.id);
+      });
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url: { '$in': entries } })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          for (let url of entries) {
+            let target = results.find(item => item.url === url);
+            leancloudSelector(url).innerText = target ? target.time : 0;
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    let { app_id, app_key, server_url } = {"enable":true,"app_id":"oWisX9yfxPr6EEXVYiXpOA6q-gzGzoHsz","app_key":"uncoOWuY3UMhnT98zdzJeh5U","server_url":null,"security":true};
+    function fetchData(api_server) {
+      var Counter = (method, url, data) => {
+        return fetch(`${api_server}/1.1${url}`, {
+          method,
+          headers: {
+            'X-LC-Id'     : app_id,
+            'X-LC-Key'    : app_key,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        if (CONFIG.hostname !== location.hostname) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    }
+
+    let api_server = app_id.slice(-9) !== '-MdYXbMMI' ? server_url : `https://${app_id.slice(0, 8).toLowerCase()}.api.lncldglobal.com`;
+
+    if (api_server) {
+      fetchData(api_server);
+    } else {
+      fetch('https://app-router.leancloud.cn/2/route?appId=' + app_id)
+        .then(response => response.json())
+        .then(({ api_server }) => {
+          fetchData('https://' + api_server);
+        });
+    }
+  })();
+</script>
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    new Valine(Object.assign({
+      el         : '#valine-comments',
+      path       : location.pathname,
+    }, {"enable":true,"appId":"oWisX9yfxPr6EEXVYiXpOA6q-gzGzoHsz","appKey":"uncoOWuY3UMhnT98zdzJeh5U","notify":false,"verify":true,"placeholder":"Write something here","avatar":"retro","meta":["nick","mail"],"pageSize":10,"language":null,"visitor":false,"comment_count":true,"recordIP":false,"serverURLs":null}
+    ));
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
