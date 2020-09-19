@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico">
+  <link rel="mask-icon" href="/images/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"rmb122.com","root":"/","scheme":"Mist","version":"8.0.0-rc.2","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":"flat"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本文首发于先知   周末打了两天, 自闭 web 狗就做出来这一题, 另一题不知道调用啥 mbean 能拿 shell. 总之题目质量真的是非常高, 学到了很多.   描述12345Imagick is a awesome library for hackers to break &#96;disable_functions&#96;.So I installed php-imagick in t">
+<meta property="og:type" content="article">
+<meta property="og:title" content="0ctf Wallbreaker Easy Writeup">
+<meta property="og:url" content="https://rmb122.com/2019/03/26/0ctf-Wallbreaker-Easy-Writeup/index.html">
+<meta property="og:site_name" content="Rmb122&#39;s Notebook">
+<meta property="og:description" content="本文首发于先知   周末打了两天, 自闭 web 狗就做出来这一题, 另一题不知道调用啥 mbean 能拿 shell. 总之题目质量真的是非常高, 学到了很多.   描述12345Imagick is a awesome library for hackers to break &#96;disable_functions&#96;.So I installed php-imagick in t">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://i.loli.net/2019/03/25/5c98caa8c8e93.png">
+<meta property="og:image" content="https://i.loli.net/2019/03/25/5c98caa8cc2e2.png">
+<meta property="og:image" content="https://i.loli.net/2019/03/25/5c98caa90a2f7.png">
+<meta property="og:image" content="https://i.loli.net/2019/03/25/5c98caa92f03a.png">
+<meta property="og:image" content="https://i.loli.net/2019/03/25/5c98d6280c9a5.png">
+<meta property="og:image" content="https://i.loli.net/2019/03/25/5c98d627f3530.png">
+<meta property="og:image" content="https://i.loli.net/2019/03/25/5c98caa992bb6.png">
+<meta property="og:image" content="https://i.loli.net/2019/03/25/5c98caa98b8aa.png">
+<meta property="article:published_time" content="2019-03-26T08:06:31.000Z">
+<meta property="article:modified_time" content="2019-07-22T01:47:16.135Z">
+<meta property="article:author" content="rmb122">
+<meta property="article:tag" content="web">
+<meta property="article:tag" content="writeup">
+<meta property="article:tag" content="0ctf">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2019/03/25/5c98caa8c8e93.png">
+
+<link rel="canonical" href="https://rmb122.com/2019/03/26/0ctf-Wallbreaker-Easy-Writeup/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>0ctf Wallbreaker Easy Writeup | Rmb122's Notebook</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Rmb122's Notebook" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+        <span class="toggle-line toggle-line-first"></span>
+        <span class="toggle-line toggle-line-middle"></span>
+        <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Rmb122's Notebook</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-links">
+
+    <a href="/links/" rel="section"><i class="fa fa-link fa-fw"></i>友链</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://rmb122.com/2019/03/26/0ctf-Wallbreaker-Easy-Writeup/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="rmb122">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Rmb122's Notebook">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          0ctf Wallbreaker Easy Writeup
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-03-26 16:06:31" itemprop="dateCreated datePublished" datetime="2019-03-26T16:06:31+08:00">2019-03-26</time>
+            </span>
+
+          
+            <span id="/2019/03/26/0ctf-Wallbreaker-Easy-Writeup/" class="post-meta-item leancloud_visitors" data-flag-title="0ctf Wallbreaker Easy Writeup" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/03/26/0ctf-Wallbreaker-Easy-Writeup/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2019/03/26/0ctf-Wallbreaker-Easy-Writeup/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文首发于<a href="https://xz.aliyun.com/t/4589" target="_blank" rel="noopener">先知</a>  </p>
+<p>周末打了两天, 自闭 web 狗就做出来这一题, 另一题不知道调用啥 mbean 能拿 shell. 总之题目质量真的是非常高, 学到了很多.  </p>
+<h2 id="描述"><a href="#描述" class="headerlink" title="描述"></a>描述</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Imagick is a awesome library for hackers to break &#96;disable_functions&#96;.</span><br><span class="line">So I installed php-imagick in the server, opened a &#96;backdoor&#96; for you.</span><br><span class="line">Let&#39;s try to execute &#96;&#x2F;readflag&#96; to get the flag.</span><br><span class="line">Open basedir: &#x2F;var&#x2F;www&#x2F;html:&#x2F;tmp&#x2F;949c1400c8390865cb5939a106fec0b6</span><br><span class="line">Hint: eval($_POST[&quot;backdoor&quot;]);</span><br></pre></td></tr></table></figure>
+
+<a id="more"></a>
+
+<h2 id="提示"><a href="#提示" class="headerlink" title="提示"></a>提示</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">WALLBREAKER EASY</span><br><span class="line">Ubuntu 18.04 &#x2F; apt install php php-fpm php-imagick</span><br></pre></td></tr></table></figure>
+
+<p>第一眼看上去, 直接给了 webshell, 要求是执行根目录下的 <code>/readflag</code>,<br>先执行一波 <code>phpinfo()</code> 看看信息.<br><img src="https://i.loli.net/2019/03/25/5c98caa8c8e93.png" alt=""><br><img src="https://i.loli.net/2019/03/25/5c98caa8cc2e2.png" alt=""><br><img src="https://i.loli.net/2019/03/25/5c98caa90a2f7.png" alt="">  </p>
+<p>可以看到是 lnp 64 位环境, disable_function 如下  </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wifcontinued,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_get_handler,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority,pcntl_async_signals,system,exec,shell_exec,popen,proc_open,passthru,symlink,link,syslog,imap_open,ld,mail</span><br></pre></td></tr></table></figure>
+
+<p>Imagick 信息如下<br><img src="https://i.loli.net/2019/03/25/5c98caa92f03a.png" alt=""></p>
+<h2 id="题解"><a href="#题解" class="headerlink" title="题解"></a>题解</h2><p>可以看到禁用了全部能直接执行程序的函数, 顺便还禁用了 mail, 不然的话可以直接用 <code>LD_PRELOAD</code> 来执行系统命令. 具体可以看这个<a href="https://github.com/yangyangwithgnu/bypass_disablefunc_via_LD_PRELOAD" target="_blank" rel="noopener">项目</a>.  </p>
+<p>接下来第一反应是通过 ghostscript 的 0day 打一波试试, 但尝试了几次全部都没有反应… 好吧没有报错太蛋疼了, 我们还是照着提示搭一波环境吧.  </p>
+<p>然后发现这里其实就真的跟提示一样, 全是最新的环境, 所以肯定是不存在已知的严重 0day 的…<br>同时, 可以看到在默认的配置文件中, 已经禁用了 ghostscript 的使用, 不能通过 gs 来命令执行.</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">$ cat /etc/ImageMagick-6/policy.xml </span><br><span class="line"><span class="meta">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE policymap [</span></span><br><span class="line"><span class="meta">&lt;!ELEMENT policymap (policy)+&gt;</span></span><br><span class="line"><span class="meta">&lt;!ELEMENT policy (#PCDATA)&gt;</span></span><br><span class="line"><span class="meta">&lt;!ATTLIST policy domain (delegate|coder|filter|path|resource) #IMPLIED&gt;</span></span><br><span class="line"><span class="meta">&lt;!ATTLIST policy name CDATA #IMPLIED&gt;</span></span><br><span class="line"><span class="meta">&lt;!ATTLIST policy rights CDATA #IMPLIED&gt;</span></span><br><span class="line"><span class="meta">&lt;!ATTLIST policy pattern CDATA #IMPLIED&gt;</span></span><br><span class="line"><span class="meta">&lt;!ATTLIST policy value CDATA #IMPLIED&gt;</span></span><br><span class="line"><span class="meta">]&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">policymap</span>&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- &lt;policy domain="resource" name="temporary-path" value="/tmp"/&gt; --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">policy</span> <span class="attr">domain</span>=<span class="string">"resource"</span> <span class="attr">name</span>=<span class="string">"memory"</span> <span class="attr">value</span>=<span class="string">"256MiB"</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">policy</span> <span class="attr">domain</span>=<span class="string">"resource"</span> <span class="attr">name</span>=<span class="string">"map"</span> <span class="attr">value</span>=<span class="string">"512MiB"</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">policy</span> <span class="attr">domain</span>=<span class="string">"resource"</span> <span class="attr">name</span>=<span class="string">"width"</span> <span class="attr">value</span>=<span class="string">"16KP"</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">policy</span> <span class="attr">domain</span>=<span class="string">"resource"</span> <span class="attr">name</span>=<span class="string">"height"</span> <span class="attr">value</span>=<span class="string">"16KP"</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">policy</span> <span class="attr">domain</span>=<span class="string">"resource"</span> <span class="attr">name</span>=<span class="string">"area"</span> <span class="attr">value</span>=<span class="string">"128MB"</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">policy</span> <span class="attr">domain</span>=<span class="string">"resource"</span> <span class="attr">name</span>=<span class="string">"disk"</span> <span class="attr">value</span>=<span class="string">"1GiB"</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">policy</span> <span class="attr">domain</span>=<span class="string">"delegate"</span> <span class="attr">rights</span>=<span class="string">"none"</span> <span class="attr">pattern</span>=<span class="string">"URL"</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">policy</span> <span class="attr">domain</span>=<span class="string">"delegate"</span> <span class="attr">rights</span>=<span class="string">"none"</span> <span class="attr">pattern</span>=<span class="string">"HTTPS"</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">policy</span> <span class="attr">domain</span>=<span class="string">"delegate"</span> <span class="attr">rights</span>=<span class="string">"none"</span> <span class="attr">pattern</span>=<span class="string">"HTTP"</span> /&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- in order to avoid to get image with password text --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">policy</span> <span class="attr">domain</span>=<span class="string">"path"</span> <span class="attr">rights</span>=<span class="string">"none"</span> <span class="attr">pattern</span>=<span class="string">"@*"</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">policy</span> <span class="attr">domain</span>=<span class="string">"cache"</span> <span class="attr">name</span>=<span class="string">"shared-secret"</span> <span class="attr">value</span>=<span class="string">"passphrase"</span> <span class="attr">stealth</span>=<span class="string">"true"</span>/&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- disable ghostscript format types --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">policy</span> <span class="attr">domain</span>=<span class="string">"coder"</span> <span class="attr">rights</span>=<span class="string">"none"</span> <span class="attr">pattern</span>=<span class="string">"PS"</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">policy</span> <span class="attr">domain</span>=<span class="string">"coder"</span> <span class="attr">rights</span>=<span class="string">"none"</span> <span class="attr">pattern</span>=<span class="string">"EPI"</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">policy</span> <span class="attr">domain</span>=<span class="string">"coder"</span> <span class="attr">rights</span>=<span class="string">"none"</span> <span class="attr">pattern</span>=<span class="string">"PDF"</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">policy</span> <span class="attr">domain</span>=<span class="string">"coder"</span> <span class="attr">rights</span>=<span class="string">"none"</span> <span class="attr">pattern</span>=<span class="string">"XPS"</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">policymap</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>看起来好像一切的都没了希望, 但这时突然想起, 有没有可能通过 <code>Imagick</code> 来达到 <code>mail</code> 函数类似的效果呢? 上面的 <code>LD_PRELOAD</code> 其实是劫持了启动进程这一行为, 也就是说, 如果我们能让 <code>Imagick</code> 调用外部进程, 我们完全可以不通过 <code>mail</code> 来执行系统命令.  </p>
+<p><code>Imagick</code> 的底层是 <code>ImageMagick</code>, 这里就要说 <code>ImageMagick</code> 的 <code>delegate</code> 问题, <code>ImageMagick</code> 其实并没有实现所有文件格式的转换, 而是启动外部程序来进行转换, 就像上面的 ghostscript, 如果要将图片转换为 pdf, 就需要调用 ghostscript 来转换, 而这就会启动新的进程, 触发 <code>LD_PRELAOD</code>.  </p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">$ cat /etc/ImageMagick-6/delegates.xml </span><br><span class="line"><span class="meta">&lt;!DOCTYPE delegatemap [</span></span><br><span class="line"><span class="meta">&lt;!ELEMENT delegatemap (delegate)+&gt;</span></span><br><span class="line"><span class="meta">&lt;!ELEMENT delegate (#PCDATA)&gt;</span></span><br><span class="line"><span class="meta">&lt;!ATTLIST delegate decode CDATA #IMPLIED&gt;</span></span><br><span class="line"><span class="meta">&lt;!ATTLIST delegate encode CDATA #IMPLIED&gt;</span></span><br><span class="line"><span class="meta">&lt;!ATTLIST delegate mode CDATA #IMPLIED&gt;</span></span><br><span class="line"><span class="meta">&lt;!ATTLIST delegate spawn CDATA #IMPLIED&gt;</span></span><br><span class="line"><span class="meta">&lt;!ATTLIST delegate stealth CDATA #IMPLIED&gt;</span></span><br><span class="line"><span class="meta">&lt;!ATTLIST delegate thread-support CDATA #IMPLIED&gt;</span></span><br><span class="line"><span class="meta">&lt;!ATTLIST delegate command CDATA #REQUIRED&gt;</span></span><br><span class="line"><span class="meta">]&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">delegatemap</span>&gt;</span></span><br><span class="line"><span class="comment">&lt;!-- 省略很多行 --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">delegate</span> <span class="attr">decode</span>=<span class="string">"bmp"</span> <span class="attr">encode</span>=<span class="string">"wdp"</span> <span class="attr">command</span>=<span class="string">"/bin/mv &amp;quot;%i&amp;quot; &amp;quot;%i.bmp&amp;quot;; &amp;quot;JxrEncApp&amp;quot; -i &amp;quot;%i.bmp&amp;quot; -o &amp;quot;%o.jxr&amp;quot;; /bin/mv &amp;quot;%i.bmp&amp;quot; &amp;quot;%i&amp;quot;; /bin/mv &amp;quot;%o.jxr&amp;quot; &amp;quot;%o&amp;quot;"</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">delegate</span> <span class="attr">decode</span>=<span class="string">"ppt"</span> <span class="attr">command</span>=<span class="string">"&amp;quot;soffice&amp;quot; --convert-to pdf -outdir `dirname &amp;quot;%i&amp;quot;` &amp;quot;%i&amp;quot; 2&amp;gt; &amp;quot;%u&amp;quot;; /bin/mv &amp;quot;%i.pdf&amp;quot; &amp;quot;%o&amp;quot;"</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">delegate</span> <span class="attr">decode</span>=<span class="string">"pptx"</span> <span class="attr">command</span>=<span class="string">"&amp;quot;soffice&amp;quot; --convert-to pdf -outdir `dirname &amp;quot;%i&amp;quot;` &amp;quot;%i&amp;quot; 2&amp;gt; &amp;quot;%u&amp;quot;; /bin/mv &amp;quot;%i.pdf&amp;quot; &amp;quot;%o&amp;quot;"</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">delegate</span> <span class="attr">decode</span>=<span class="string">"ps:alpha"</span> <span class="attr">stealth</span>=<span class="string">"True"</span> <span class="attr">command</span>=<span class="string">"&amp;quot;gs&amp;quot; -sstdout=%%stderr -dQUIET -dSAFER -dBATCH -dNOPAUSE -dNOPROMPT -dMaxBitmap=500000000 -dAlignToPixels=0 -dGridFitTT=2 &amp;quot;-sDEVICE=pngalpha&amp;quot; -dTextAlphaBits=%u -dGraphicsAlphaBits=%u &amp;quot;-r%s&amp;quot; %s &amp;quot;-sOutputFile=%s&amp;quot; &amp;quot;-f%s&amp;quot; &amp;quot;-f%s&amp;quot;"</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">delegate</span> <span class="attr">decode</span>=<span class="string">"ps:cmyk"</span> <span class="attr">stealth</span>=<span class="string">"True"</span> <span class="attr">command</span>=<span class="string">"&amp;quot;gs&amp;quot; -sstdout=%%stderr -dQUIET -dSAFER -dBATCH -dNOPAUSE -dNOPROMPT -dMaxBitmap=500000000 -dAlignToPixels=0 -dGridFitTT=2 &amp;quot;-sDEVICE=pamcmyk32&amp;quot; -dTextAlphaBits=%u -dGraphicsAlphaBits=%u &amp;quot;-r%s&amp;quot; %s &amp;quot;-sOutputFile=%s&amp;quot; &amp;quot;-f%s&amp;quot; &amp;quot;-f%s&amp;quot;"</span>/&gt;</span></span><br><span class="line"><span class="comment">&lt;!-- 省略很多行 --&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">delegatemap</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>可以看到有很多的 delegate, 在进行这些格式的编码以及解码时, <code>ImageMagick</code> 会调用这些外部程序. 但是这些外部程序大部分其实都不自带, 得自己安装, 不会起新的进程, 但是可以注意到这个特殊的格式,  </p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">delegate</span> <span class="attr">decode</span>=<span class="string">"bmp"</span> <span class="attr">encode</span>=<span class="string">"wdp"</span> <span class="attr">command</span>=<span class="string">"/bin/mv &amp;quot;%i&amp;quot; &amp;quot;%i.bmp&amp;quot;; &amp;quot;JxrEncApp&amp;quot; -i &amp;quot;%i.bmp&amp;quot; -o &amp;quot;%o.jxr&amp;quot;; /bin/mv &amp;quot;%i.bmp&amp;quot; &amp;quot;%i&amp;quot;; /bin/mv &amp;quot;%o.jxr&amp;quot; &amp;quot;%o&amp;quot;"</span>/&gt;</span></span><br></pre></td></tr></table></figure>
+<p>其中有系统自带的 mv, 这肯定是能执行成功的, 我们只要通过转换格式就能调用这个 delegate.<br>通过 strace 也可以发现确实调用了 mv, 即使因为 JxrEncApp 不存在导致图片转换失败, 但只要因为 mv 调起了新进程, 我们就能执行任意命令.</p>
+<p><img src="https://i.loli.net/2019/03/25/5c98d6280c9a5.png" alt=""><br><img src="https://i.loli.net/2019/03/25/5c98d627f3530.png" alt="">  </p>
+<p>这样, 就可以通过 <code>ImageMagick</code> 来触发新进程的产生, 并通过修改 <code>LD_PRELOAD</code> 的方式来执行任意系统命令.  </p>
+<p>最后 exp 如下, 写入so文件<br><img src="https://i.loli.net/2019/03/25/5c98caa992bb6.png" alt=""><br>修改 <code>LD_PRELOAD</code> 并转换图片格式, 最终执行系统变量 <code>EVIL_CMDLINE</code> 里的命令.<br><img src="https://i.loli.net/2019/03/25/5c98caa98b8aa.png" alt="">  </p>
+<p>PS. 写入 so 文件的时候记得把 base64 里的 <code>+</code> 给编码, 不然会被当成空格.  </p>
+<p>还有一种思路是修改 <code>PATH</code> 环境变量, 修改为 <code>/tmp/xxx/</code>, 然后新建一个名为 <code>JxrEncApp</code> 之类的的恶意文件,<br><code>ImageMagick</code> 在 <code>delegete</code> 的时候将会调用这个, 从而执行命令.  </p>
+<p>不得不说题目质量是真的高, 膜 rr.  </p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>除了这种 <code>LD_PRELOAD</code> 的方式之外, 还有其他一些骚操作, 可以看 <a href="https://github.com/l3m0n/Bypass_Disable_functions_Shell" target="_blank" rel="noopener">l3m0n</a> 师傅总结的.<br>在遇到这种困境时, 不防想想有没有什么其他办法能 bypass 掉当前的限制, 开辟新的方法.  </p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>rmb122
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://rmb122.com/2019/03/26/0ctf-Wallbreaker-Easy-Writeup/" title="0ctf Wallbreaker Easy Writeup">https://rmb122.com/2019/03/26/0ctf-Wallbreaker-Easy-Writeup/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章仅仅记录学习过程, 并不保证文章完全正确, 如果你有任何疑问或者找出问题, 欢迎在评论区指正.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/web/" rel="tag"># web</a>
+              <a href="/tags/writeup/" rel="tag"># writeup</a>
+              <a href="/tags/0ctf/" rel="tag"># 0ctf</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/03/25/%E4%BB%8E%E4%B8%80%E9%81%93-CTF-%E9%A2%98%E4%BA%86%E8%A7%A3%E5%AF%86%E7%A0%81%E5%AD%A6%E4%B8%AD%E7%9A%84-Meet-in-the-middle-%E6%94%BB%E5%87%BB/" rel="prev" title="从一道 CTF 题了解密码学中的 Meet-in-the-middle 攻击">
+      <i class="fa fa-chevron-left"></i> 从一道 CTF 题了解密码学中的 Meet-in-the-middle 攻击
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/04/04/%E5%B9%B2%E6%8E%89-PHP-%E4%B8%8D%E6%AD%BB%E9%A9%AC/" rel="next" title="干掉 PHP 不死马">
+      干掉 PHP 不死马 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#描述"><span class="nav-number">1.</span> <span class="nav-text">描述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#提示"><span class="nav-number">2.</span> <span class="nav-text">提示</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#题解"><span class="nav-number">3.</span> <span class="nav-text">题解</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="rmb122"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">rmb122</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">68</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/rmb122" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;rmb122" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/atom.xml" title="RSS → &#x2F;atom.xml"><i class="fa fa-rss fa-fw"></i>RSS</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">rmb122</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+<script>
+  (function() {
+    function leancloudSelector(url) {
+      url = encodeURI(url);
+      return document.getElementById(url).querySelector('.leancloud-visitors-count');
+    }
+
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = decodeURI(visitors.id);
+      var title = visitors.dataset.flagTitle;
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            leancloudSelector(url).innerText = counter.time + 1;
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .catch(error => {
+                console.error('Failed to save visitor count', error);
+              });
+          } else {
+              leancloudSelector(url).innerText = 'Counter not initialized! More info at console err msg.';
+              console.error('ATTENTION! LeanCloud counter has security bug, see how to solve it here: https://github.com/theme-next/hexo-leancloud-counter-security. \n However, you can still use LeanCloud without security, by setting `security` option to `false`.');
+            
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return decodeURI(element.id);
+      });
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url: { '$in': entries } })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          for (let url of entries) {
+            let target = results.find(item => item.url === url);
+            leancloudSelector(url).innerText = target ? target.time : 0;
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    let { app_id, app_key, server_url } = {"enable":true,"app_id":"rVVd10sU0t2cjpEvSiQh7av7-MdYXbMMI","app_key":"Y31jyHHMWPckrz1X8Fn9EUi0","server_url":null,"security":true};
+    function fetchData(api_server) {
+      var Counter = (method, url, data) => {
+        return fetch(`${api_server}/1.1${url}`, {
+          method,
+          headers: {
+            'X-LC-Id'     : app_id,
+            'X-LC-Key'    : app_key,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        if (CONFIG.hostname !== location.hostname) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    }
+
+    let api_server = app_id.slice(-9) !== '-MdYXbMMI' ? server_url : `https://${app_id.slice(0, 8).toLowerCase()}.api.lncldglobal.com`;
+
+    if (api_server) {
+      fetchData(api_server);
+    } else {
+      fetch('https://app-router.leancloud.cn/2/route?appId=' + app_id)
+        .then(response => response.json())
+        .then(({ api_server }) => {
+          fetchData('https://' + api_server);
+        });
+    }
+  })();
+</script>
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    new Valine(Object.assign({
+      el         : '#valine-comments',
+      path       : location.pathname,
+    }, {"enable":true,"appId":"rVVd10sU0t2cjpEvSiQh7av7-MdYXbMMI","appKey":"Y31jyHHMWPckrz1X8Fn9EUi0","notify":false,"verify":true,"placeholder":"Write something here","avatar":"retro","meta":["nick","mail"],"pageSize":10,"language":null,"visitor":false,"comment_count":true,"recordIP":false,"serverURLs":null}
+    ));
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

