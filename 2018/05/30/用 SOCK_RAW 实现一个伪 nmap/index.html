@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico">
+  <link rel="mask-icon" href="/images/favicon.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"rmb122.com","root":"/","scheme":"Mist","version":"8.0.0-rc.2","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":"flat"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="这几天详细研究了下 nmap 的实现原理, 对 TCP 协议还是蛮好奇的. 刚好 python 的 socket 库十分强大, 支持 SOCK_RAW, 意味着我们完全可以自己实现一个 SYN 端口探测器. 首先自然要了解一下 TCP 协议的结构, 可以在 wikipedia 上查到,">
+<meta property="og:type" content="article">
+<meta property="og:title" content="用 SOCK_RAW 实现一个伪 nmap">
+<meta property="og:url" content="https://rmb122.com/2018/05/30/%E7%94%A8%20SOCK_RAW%20%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E4%BC%AA%20nmap/index.html">
+<meta property="og:site_name" content="Rmb122&#39;s Notebook">
+<meta property="og:description" content="这几天详细研究了下 nmap 的实现原理, 对 TCP 协议还是蛮好奇的. 刚好 python 的 socket 库十分强大, 支持 SOCK_RAW, 意味着我们完全可以自己实现一个 SYN 端口探测器. 首先自然要了解一下 TCP 协议的结构, 可以在 wikipedia 上查到,">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://i.loli.net/2019/03/08/5c8274b5c63d5.png">
+<meta property="article:published_time" content="2018-05-30T06:42:40.000Z">
+<meta property="article:modified_time" content="2019-07-22T01:47:16.148Z">
+<meta property="article:author" content="rmb122">
+<meta property="article:tag" content="misc">
+<meta property="article:tag" content="python">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2019/03/08/5c8274b5c63d5.png">
+
+<link rel="canonical" href="https://rmb122.com/2018/05/30/%E7%94%A8%20SOCK_RAW%20%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E4%BC%AA%20nmap/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>用 SOCK_RAW 实现一个伪 nmap | Rmb122's Notebook</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Rmb122's Notebook" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+        <span class="toggle-line toggle-line-first"></span>
+        <span class="toggle-line toggle-line-middle"></span>
+        <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Rmb122's Notebook</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-links">
+
+    <a href="/links/" rel="section"><i class="fa fa-link fa-fw"></i>友链</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://rmb122.com/2018/05/30/%E7%94%A8%20SOCK_RAW%20%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E4%BC%AA%20nmap/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="rmb122">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Rmb122's Notebook">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          用 SOCK_RAW 实现一个伪 nmap
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-05-30 14:42:40" itemprop="dateCreated datePublished" datetime="2018-05-30T14:42:40+08:00">2018-05-30</time>
+            </span>
+
+          
+            <span id="/2018/05/30/%E7%94%A8%20SOCK_RAW%20%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E4%BC%AA%20nmap/" class="post-meta-item leancloud_visitors" data-flag-title="用 SOCK_RAW 实现一个伪 nmap" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2018/05/30/%E7%94%A8%20SOCK_RAW%20%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E4%BC%AA%20nmap/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2018/05/30/%E7%94%A8%20SOCK_RAW%20%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E4%BC%AA%20nmap/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>这几天详细研究了下 nmap 的实现原理, 对 TCP 协议还是蛮好奇的. 刚好 python 的 socket 库十分强大, 支持 SOCK_RAW, 意味着我们完全可以自己实现一个 SYN 端口探测器. 首先自然要了解一下 TCP 协议的结构, 可以在 wikipedia 上查到,  </p>
+<a id="more"></a>
+
+<p><img src="https://i.loli.net/2019/03/08/5c8274b5c63d5.png" alt="">  </p>
+<p>比较麻烦的是效验和的计算, 还需要源地址和目标地址才能算出来, 否则会被路由直接丢掉</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">makeByteArray</span><span class="params">(num, byteSize)</span>:</span></span><br><span class="line">    <span class="string">'''</span></span><br><span class="line"><span class="string">    将数字转化为 bytearray.</span></span><br><span class="line"><span class="string">    '''</span></span><br><span class="line">    result = bytearray()</span><br><span class="line">    num = bin(num)[<span class="number">2</span>:].zfill(byteSize * <span class="number">8</span>)  <span class="comment">#补零</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">0</span>, len(num), <span class="number">8</span>):</span><br><span class="line">        result.append(int(num[i:i + <span class="number">8</span>], <span class="number">2</span>))  <span class="comment">#按字节分割</span></span><br><span class="line">    <span class="keyword">return</span> result</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">calcCheckSum</span><span class="params">(srcIp, targetIp, tcpHead)</span>:</span></span><br><span class="line">    <span class="string">''''</span></span><br><span class="line"><span class="string">    计算效验和.</span></span><br><span class="line"><span class="string">    '''</span></span><br><span class="line">    psdHeader = bytearray()</span><br><span class="line">    psdHeader.extend(srcIp)  <span class="comment">#来源 Ip</span></span><br><span class="line">    psdHeader.extend(targetIp)  <span class="comment">#目标 Ip</span></span><br><span class="line">    psdHeader.extend(makeByteArray(<span class="number">0</span>, <span class="number">1</span>))  <span class="comment">#补零</span></span><br><span class="line">    psdHeader.extend(makeByteArray(socket.IPPROTO_TCP, <span class="number">1</span>))  <span class="comment">#TCP 协议号</span></span><br><span class="line">    psdHeader.extend(makeByteArray(len(tcpHead), <span class="number">2</span>))  <span class="comment">#TCP 长度</span></span><br><span class="line">    psdHeader.extend(tcpHead)</span><br><span class="line"></span><br><span class="line">    checkSum = <span class="number">0</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">0</span>, len(psdHeader), <span class="number">2</span>):</span><br><span class="line">        checkSum += ((psdHeader[i] &lt;&lt; <span class="number">8</span>) + psdHeader[i + <span class="number">1</span>])</span><br><span class="line">        checkSum = (checkSum &gt;&gt; <span class="number">16</span>) + (checkSum &amp; <span class="number">0xffff</span>)</span><br><span class="line"></span><br><span class="line">    checkSum = ~checkSum &amp; <span class="number">0xffff</span></span><br><span class="line">    <span class="keyword">return</span> checkSum</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">makeTCPSyn</span><span class="params">(srcIp, targetIp, srcPort, targetPort)</span>:</span></span><br><span class="line">    tcpPayload = bytearray()</span><br><span class="line">    tcpPayload.extend(makeByteArray(srcPort, <span class="number">2</span>))  <span class="comment">#来源端口</span></span><br><span class="line">    tcpPayload.extend(makeByteArray(targetPort, <span class="number">2</span>))  <span class="comment">#目标端口</span></span><br><span class="line">    tcpPayload.extend(makeByteArray(randint(<span class="number">0x10000000</span>, <span class="number">0xAAAAAAAA</span>), <span class="number">4</span>))  <span class="comment">#SYN 序列号, 随机生成一个</span></span><br><span class="line">    tcpPayload.extend(makeByteArray(<span class="number">0</span>, <span class="number">4</span>))  <span class="comment">#ACK 序列号</span></span><br><span class="line">    tcpPayload.extend(makeByteArray(<span class="number">0b0110000000000010</span>, <span class="number">2</span>))  <span class="comment">#数据开始的偏移量、保留字段以及标识符 我们只需要填充 SYN 的标准位为 1 即可</span></span><br><span class="line">    tcpPayload.extend(makeByteArray(randint(<span class="number">300</span>, <span class="number">1460</span>), <span class="number">2</span>))  <span class="comment">#窗口大小, 大小随意</span></span><br><span class="line">    tcpPayload.extend(makeByteArray(<span class="number">0</span>, <span class="number">2</span>))  <span class="comment">#check sum, 先用 0 填充</span></span><br><span class="line">    tcpPayload.extend(makeByteArray(<span class="number">0</span>, <span class="number">2</span>))  <span class="comment">#紧急指针</span></span><br><span class="line">    tcpPayload.extend(makeByteArray(<span class="number">2</span>, <span class="number">1</span>))  <span class="comment">#这个以及下面的为 tcp options</span></span><br><span class="line">    tcpPayload.extend(makeByteArray(<span class="number">4</span>, <span class="number">1</span>))</span><br><span class="line">    tcpPayload.extend(makeByteArray(<span class="number">1460</span>, <span class="number">2</span>))</span><br><span class="line"></span><br><span class="line">    checkSum = makeByteArray(calcCheckSum(srcIp, targetIp, tcpPayload), <span class="number">2</span>)</span><br><span class="line">    tcpPayload[<span class="number">16</span>] = checkSum[<span class="number">0</span>]  <span class="comment">#将 checksum 替换为计算好的值</span></span><br><span class="line">    tcpPayload[<span class="number">17</span>] = checkSum[<span class="number">1</span>]</span><br><span class="line">    <span class="keyword">return</span> tcpPayload</span><br></pre></td></tr></table></figure>
+
+<p>最后写出来是这样的, 其实并不困难, 主要是比较复杂以及资料相对比较难找. 接下来我们直接通过 SOCK_RAW 发出去就可以了, 注意开启 SOCK_RAW 是需要 root 权限的</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">transIp2Bytes</span><span class="params">(addr)</span>:</span></span><br><span class="line">    <span class="string">'''</span></span><br><span class="line"><span class="string">    将 Ip 转换为 bytearray.</span></span><br><span class="line"><span class="string">    '''</span></span><br><span class="line">    addr = addr.split(<span class="string">"."</span>)</span><br><span class="line">    result = bytearray()</span><br><span class="line">    <span class="keyword">for</span> num <span class="keyword">in</span> addr:</span><br><span class="line">        result.extend(makeByteArray(int(num), <span class="number">1</span>))</span><br><span class="line">    <span class="keyword">return</span> result</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">analyzeRes</span><span class="params">(response)</span>:</span></span><br><span class="line">    port = (response[<span class="number">20</span>] &lt;&lt; <span class="number">8</span>) + response[<span class="number">21</span>]</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (response[<span class="number">33</span>] &gt;&gt; <span class="number">2</span>) &amp; <span class="number">1</span>:  <span class="comment">#RST 位</span></span><br><span class="line">        <span class="keyword">return</span> (port, PORT_CLOSE)</span><br><span class="line">    <span class="keyword">elif</span> (response[<span class="number">33</span>] &gt;&gt; <span class="number">4</span>) &amp; <span class="number">1</span>:  <span class="comment">#SYN 位</span></span><br><span class="line">        <span class="keyword">return</span> (port, PORT_OPEN)</span><br><span class="line">    <span class="keyword">raise</span> Exception(<span class="string">"Invaild head."</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">isPortOpen</span><span class="params">(localAddr, remoteAddr)</span>:</span></span><br><span class="line">    <span class="string">'''</span></span><br><span class="line"><span class="string">    检测端口是否开放, 端口被过滤返回 `PORT_FILTERED`, 端口关闭返回 `PORT_CLOSE`, 开启返回 `PORT_OPEN`  </span></span><br><span class="line"><span class="string">    localAddr, remoteAddr 均为 tuple.</span></span><br><span class="line"><span class="string">    '''</span></span><br><span class="line">    sck = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_TCP)</span><br><span class="line">    sck.setblocking(<span class="literal">False</span>)  <span class="comment">#设置为非阻塞式</span></span><br><span class="line"></span><br><span class="line">    payload = makeTCPSyn(transIp2Bytes(localAddr[<span class="number">0</span>]), transIp2Bytes(remoteAddr[<span class="number">0</span>]), localAddr[<span class="number">1</span>], remoteAddr[<span class="number">1</span>])</span><br><span class="line">    sck.sendto(payload, remoteAddr)</span><br><span class="line">    sleep(<span class="number">0.1</span>)</span><br><span class="line"></span><br><span class="line">    response = bytearray()</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        response = sck.recv(<span class="number">1024</span>)</span><br><span class="line">    <span class="keyword">except</span> Exception:</span><br><span class="line">        <span class="keyword">pass</span></span><br><span class="line"></span><br><span class="line">    retriedTime = <span class="number">0</span></span><br><span class="line">    <span class="keyword">while</span> len(response) == <span class="number">0</span> <span class="keyword">and</span> retriedTime &lt;= RETRY_TIME:</span><br><span class="line">        sleep(RETRY_WAIT_TIME)</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            response = sck.recv(<span class="number">1024</span>)</span><br><span class="line">        <span class="keyword">except</span> Exception:</span><br><span class="line">            <span class="keyword">pass</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> len(response) == <span class="number">0</span>:</span><br><span class="line">        <span class="keyword">return</span> PORT_FILTERED</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">return</span> analyzeRes(response)</span><br></pre></td></tr></table></figure>
+
+<p>如果收到 RST/ACK 包说明端口是关闭的, SYN/ACK 则是开启, 没有收到回复就是被 iptables 之类过滤了. 不过这里其实 SOCK_RAW 可以收到全端口的 TCP 流量, 我比较偷懒就没做过滤了233, 所以可能会有 bug, 要完全版可以在 <a href="https://github.com/rmb122/portScanner" target="_blank" rel="noopener">github</a> 上看看完整的多线程版, 实现的比较完全.</p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>rmb122
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://rmb122.com/2018/05/30/%E7%94%A8%20SOCK_RAW%20%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E4%BC%AA%20nmap/" title="用 SOCK_RAW 实现一个伪 nmap">https://rmb122.com/2018/05/30/用 SOCK_RAW 实现一个伪 nmap/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章仅仅记录学习过程, 并不保证文章完全正确, 如果你有任何疑问或者找出问题, 欢迎在评论区指正.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/misc/" rel="tag"># misc</a>
+              <a href="/tags/python/" rel="tag"># python</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/05/26/%E9%93%81%E4%B8%89%E6%9D%AF%E5%8D%81%E4%B8%89%E8%B5%9B%E5%8C%BA%E6%B5%81%E9%87%8F%E5%88%86%E6%9E%90%E9%83%A8%E5%88%86%E9%A2%98%E7%9B%AE%20WriteUp/" rel="prev" title="铁三杯十三赛区流量分析部分题目 WriteUp">
+      <i class="fa fa-chevron-left"></i> 铁三杯十三赛区流量分析部分题目 WriteUp
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/06/14/%E5%BC%80%E5%8F%91%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%20Chrome%20%E6%8B%93%E5%B1%95/" rel="next" title="开发一个简单的 Chrome 拓展">
+      开发一个简单的 Chrome 拓展 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="rmb122"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">rmb122</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">67</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">23</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/rmb122" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;rmb122" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/atom.xml" title="RSS → &#x2F;atom.xml"><i class="fa fa-rss fa-fw"></i>RSS</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">rmb122</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+<script>
+  (function() {
+    function leancloudSelector(url) {
+      url = encodeURI(url);
+      return document.getElementById(url).querySelector('.leancloud-visitors-count');
+    }
+
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = decodeURI(visitors.id);
+      var title = visitors.dataset.flagTitle;
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            leancloudSelector(url).innerText = counter.time + 1;
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .catch(error => {
+                console.error('Failed to save visitor count', error);
+              });
+          } else {
+              leancloudSelector(url).innerText = 'Counter not initialized! More info at console err msg.';
+              console.error('ATTENTION! LeanCloud counter has security bug, see how to solve it here: https://github.com/theme-next/hexo-leancloud-counter-security. \n However, you can still use LeanCloud without security, by setting `security` option to `false`.');
+            
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return decodeURI(element.id);
+      });
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url: { '$in': entries } })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          for (let url of entries) {
+            let target = results.find(item => item.url === url);
+            leancloudSelector(url).innerText = target ? target.time : 0;
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    let { app_id, app_key, server_url } = {"enable":true,"app_id":"rVVd10sU0t2cjpEvSiQh7av7-MdYXbMMI","app_key":"Y31jyHHMWPckrz1X8Fn9EUi0","server_url":null,"security":true};
+    function fetchData(api_server) {
+      var Counter = (method, url, data) => {
+        return fetch(`${api_server}/1.1${url}`, {
+          method,
+          headers: {
+            'X-LC-Id'     : app_id,
+            'X-LC-Key'    : app_key,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        if (CONFIG.hostname !== location.hostname) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    }
+
+    let api_server = app_id.slice(-9) !== '-MdYXbMMI' ? server_url : `https://${app_id.slice(0, 8).toLowerCase()}.api.lncldglobal.com`;
+
+    if (api_server) {
+      fetchData(api_server);
+    } else {
+      fetch('https://app-router.leancloud.cn/2/route?appId=' + app_id)
+        .then(response => response.json())
+        .then(({ api_server }) => {
+          fetchData('https://' + api_server);
+        });
+    }
+  })();
+</script>
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    new Valine(Object.assign({
+      el         : '#valine-comments',
+      path       : location.pathname,
+    }, {"enable":true,"appId":"rVVd10sU0t2cjpEvSiQh7av7-MdYXbMMI","appKey":"Y31jyHHMWPckrz1X8Fn9EUi0","notify":false,"verify":true,"placeholder":"Write something here","avatar":"retro","meta":["nick","mail"],"pageSize":10,"language":null,"visitor":false,"comment_count":true,"recordIP":false,"serverURLs":"https://rvvd10su.api.lncldglobal.com"}
+    ));
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
