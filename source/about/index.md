@@ -7,7 +7,8 @@ date: 2017-11-04 12:43:05
 
 <p align="center">
 <img style="margin: auto" src='https://i.loli.net/2019/03/08/5c827eec0b2e1.png'/>
-A Student from HFUT && C1Sec && TEAM SU
+A Student from UCAS && NeSE<br>
+Former student at HFUT && C1Sec && TEAM SU
 </p align='center'>
 
 #### 菜鸡成长中
