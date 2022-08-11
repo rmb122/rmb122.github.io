@@ -6,10 +6,10 @@
 包括 MD5, SHA1, SHA2 都是将信息填充为一个 Block 长度的倍数以后分 Block 一轮轮计算的,
 最后输出的是寄存器拼接在一起的值, 所以假设用以下公式计算签名"><script src=https://rmb122.com/js/feather.min.js></script>
 <link rel=stylesheet type=text/css media=screen href=https://rmb122.com/css/main.21410c161c7e5bcadc5a4eccf49ce5a024e0e8fc19babbd534cfe87972f5ee51.css><link id=darkModeStyle rel=stylesheet type=text/css href=https://rmb122.com/css/dark.726cd11ca6eb7c4f7d48eb420354f814e5c1b94281aaf8fd0511c1319f7f78a4.css disabled></head><body><div class=content><header><div class=main><a href=https://rmb122.com/>rmb122's notebook</a></div><nav><a href=/>首页</a>&nbsp;
-<a href=/tags>标签</a>&nbsp;
 <a href=/posts>归档</a>&nbsp;
-<a href=/about>关于</a>&nbsp;
-<a href=/links>友链</a>
+<a href=/tags>标签</a>&nbsp;
+<a href=/links>友链</a>&nbsp;
+<a href=/about>关于</a>
 | <a id=dark-mode-toggle onclick=toggleTheme() href></a>
 <script src=https://rmb122.com/js/themetoggle.js></script></nav></header><main><article><div class=title><h1 class=title>自制一个简单的 Hashpump</h1><div class=meta>发表于 2019 年 5 月 11 日</div></div><section class=body><p>在学完 MD5/SHA1 之后, 很快就能搞懂 <code>hashpump</code> 的原理, 本质是因为类 <code>MD</code> 哈希函数<br>包括 MD5, SHA1, SHA2 都是将信息填充为一个 <code>Block</code> 长度的倍数以后分 <code>Block</code> 一轮轮计算的,<br>最后输出的是寄存器拼接在一起的值, 所以假设用以下公式计算签名</p><p>$$ hash(key + msg) = signature $$</p><p>假如已经知道了 <code>signature</code>, <code>msg</code> 以及 <code>key</code> 的长度(在实战中可以爆破), 那么完全是可以将所有 <code>Block</code> 里面除了<br>一开始的 key 之外的的内容算出来. 自然而然可以想到, 我们将计算出 <code>signature</code> 时<br>的状态作为我们的起始状态, 也就是将寄存器的值换成哈希函数的输出, 然后就可以在新的 <code>Block</code><br>的里面伪造任意消息, 因为这时候前面 <code>Block</code> 的内容实际上只是为了 <code>padding</code> 最后的消息长度的正确,<br>所以可以在并在不知道 <code>key</code> 的情况下得到 <code>signature</code>. 这时 <code>msg</code> 就变成了<br><code>原来的 msg + padding + 伪造的 msg</code>.</p><p>限制就是必须是 <code>key + msg</code> 的顺序, 如果是 <code>msg + key</code> 的顺序, 伪造的 <code>msg</code> 就必须是<br><code>原来的 msg + key + padding + 伪造的 msg</code>, 出现了 key, 而如果我们有 key 了, 还伪造什么呢 233<br>所以局限还是比较大的, 但漏洞总是存在在哪里, 说不定就有开发者用了呢, 对吧. 所以有专门的 <code>HMAC</code> 算法<br>来生成签名, 抛开 opad 和 ipad 啥的, 原理很简单, 就是用</p><p>$$ hash(key + hash(key + msg)) = signature $$</p><p>这样嵌套的方式来计算签名, 拿到的签名值是外层的 <code>hash</code> 的结果, 而内层的 <code>hash(key + msg)</code> 的值长度是不可控的,<br>显然就不能长度扩展了.</p><p>了解这些思路, 写脚本就非常的 ez 了. 简单的对 <code>SHA1</code> 的哈希长度扩展的脚本如下.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#ff79c6>from</span> sha1 <span style=color:#ff79c6>import</span> SHA1
 </span></span><span style=display:flex><span><span style=color:#ff79c6>from</span> struct <span style=color:#ff79c6>import</span> unpack
