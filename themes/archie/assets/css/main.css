@@ -32,7 +32,7 @@ p {
 
 hr {
   border: 0;
-  border-top: 3px dotted var(--bordercl);
+  border-top: 2px dotted var(--bordercl);
   margin: 1em 0;
 }
 
@@ -210,7 +210,7 @@ article .title {
 }
 
 .callout a {
-  border-bottom: 3px solid #fff;
+  border-bottom: 2px solid #fff;
 }
 
 .callout a:hover {
@@ -226,7 +226,7 @@ justify-content: space-between;
   content: "🏷 ";
 }
 .tags a{
-  border-bottom: 3px solid var(--maincolor); 
+  border-bottom: 2px solid var(--maincolor); 
 }
 .tags a:hover{
   color:white;
