@@ -1,0 +1,51 @@
+baseURL = 'https://rmb122.com/'
+languageCode = 'zh-cn'
+title = "rmb122's notebook"
+theme = "archie"
+copyright = "@rmb122"
+pygmentsstyle = "dracula"
+pygmentscodefences = true
+pygmentscodefencesguesssyntax = true
+disablePathToLower = true
+
+[permalinks]
+posts = '/:year/:month/:day/:filename/'
+
+[params]
+mode = "toggle" # color-mode → light,dark,toggle or auto
+useCDN = false # don't use CDNs for fonts and icons, instead serve them locally.
+
+[[menu.main]]
+pre = "<i class='fa fa-heart'></i>"
+name = "首页"
+url = "/"
+weight = 1
+post = '&nbsp;'
+
+[[menu.main]]
+name = "标签"
+url = "/tags"
+weight = 2
+post = '&nbsp;'
+
+[[menu.main]]
+name = "归档"
+url = "/posts"
+weight = 3
+post = '&nbsp;'
+
+[[menu.main]]
+name = "关于"
+url = "/about"
+weight = 4
+post = '&nbsp;'
+
+[[menu.main]]
+name = "友链"
+url = "/links"
+weight = 5
+
+[[params.social]]
+name = "GitHub"
+icon = "github"
+url = "https://github.com/rmb122"

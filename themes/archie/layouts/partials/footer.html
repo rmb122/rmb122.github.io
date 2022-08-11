@@ -1,0 +1,22 @@
+<footer>
+  <div class="footer-info">
+    {{ dateFormat "2006" now }} {{ with .Site.Copyright }} {{ . }} {{ end }}
+  </div>
+  <div style="display:flex">
+    <a class="border"></a>
+    {{- range $index, $key := .Site.Params.Social -}}
+    <a class="soc" href="{{ $key.url }}" title="{{ $key.name }}"><i data-feather="{{ $key.icon }}"></i></a>
+    {{- end -}}
+  </div>
+</footer>
+{{ if not .Site.IsServer }}
+{{ template "_internal/google_analytics_async.html" . }}
+{{ end }}
+
+{{ if .Params.katex }}{{ partial "katex.html" . }}{{ end }}
+
+{{- if (isset .Site.Params "social") -}}
+<script>
+  feather.replace()
+</script>
+{{- end -}}
