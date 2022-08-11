@@ -15,7 +15,7 @@ Former student at HFUT && C1Sec && TEAM SU
 ## PGP
 
 ```
-# rmb122 @ rmb122-laptop in ~ [16:09:49]
+# rmb122 @ rmb122-laptop in ~ [16:09:42]
 $ gpg --search-keys 33C0E93F38ED926DEA1369FF0040C089F08E1E38
 gpg: data source: https://162.213.33.9:443
 (1)	rmb122 <me@rmb122.com>
