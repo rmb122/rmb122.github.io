@@ -3,8 +3,8 @@
 --maincolor: red;
 --bordercl: #232333;
 --darkBordercl: #fff;
---callouctcolor:dodgerblue;
---hovercolor:navy;
+--callouctcolor: dodgerblue;
+--hovercolor: red;
 --darkMaincolor: #50fa7b;
 }
 html {
@@ -21,8 +21,14 @@ body{
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 
+::-moz-selection {
+  background: dimgray;
+  color: #fff;
+  text-shadow: none;
+}
+
 ::selection {
-  background: var(--maincolor);
+  background: dimgray;
   color: #fff;
 }
 
