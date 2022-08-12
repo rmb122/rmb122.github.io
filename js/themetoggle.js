@@ -19,5 +19,10 @@ function toggleTheme() {
     }
 }
 
-var savedTheme = localStorage.getItem("theme-storage") || "light";
+let defaultMode = "light";
+if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    defaultMode = "dark";
+}
+
+var savedTheme = localStorage.getItem("theme-storage") || defaultMode;
 setTheme(savedTheme);
