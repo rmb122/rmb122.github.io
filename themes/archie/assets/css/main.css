@@ -1,7 +1,8 @@
 /* Markdown */
 :root{
 --maincolor: red;
---bordercl:rebeccapurple;
+--bordercl: #232333;
+--darkBordercl: #fff;
 --callouctcolor:dodgerblue;
 --hovercolor:navy;
 --darkMaincolor: #50fa7b;
@@ -101,6 +102,12 @@ figure h4::before {
 code {
   background-color: #f1f1f1;
   padding: .1em .2em;
+
+  /* Fixes iOS font sizing anomaly */
+  text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
 }
 
 pre {
@@ -138,6 +145,7 @@ header {
   flex-wrap: wrap;
   justify-content: space-between;
   margin: 1em 0;
+  line-height: 2.5em;
 }
 
 header .main {
@@ -164,8 +172,8 @@ h6::before { color: var(--maincolor); content: '###### '; }
 footer {
   display: flex;
   align-items: center;
-  border-top: 0.4rem dotted var(--bordercl);
-  padding: 2rem 0rem;
+  border-top: 0.2rem solid var(--bordercl);
+  padding: 1rem 0rem;
   margin-top: 2rem;
 }
 .soc {
@@ -265,53 +273,6 @@ svg{
   text-align: right;
   text-transform: uppercase;
   top: 0;
-}
-
-.highlight pre code[class=language-javaScript]::before,
-.highlight pre code[class="language-js"]::before {
-content: "js";
-background: #f7df1e;
-color: black;
-}
-.highlight pre code[class*='language-yml']::before,
-.highlight pre code[class*='language-yaml']::before {
-content: 'yaml';
-background: #f71e6a;
-color: white;
-}
-.highlight pre code[class*='language-shell']::before,
-.highlight pre code[class*='language-bash']::before,
-.highlight pre code[class*='language-sh']::before {
-content: 'shell';
-background: green;
-color:white
-}
-.highlight pre code[class*='language-json']::before{
-content: 'json';
-background: dodgerblue;
- color: #000000 
-}
-.highlight pre code[class*='language-python']::before,
-.highlight pre code[class*='language-py']::before {
-content: 'py';
-background: blue;
-color: yellow ;
-}
-.highlight pre code[class*='language-css']::before{
-content: 'css';
-background: cyan;
-color: black ;
-}
-.highlight pre code[class*='language-go']::before{
-content: 'Go';
-background: cyan;
-color: royalblue ;
-}
-.highlight pre code[class*='language-md']::before,
-.highlight pre code[class*='language-md']::before{
-content: 'Markdown';
-background: royalblue;
-color: whitesmoke ;
 }
 
 /* table */

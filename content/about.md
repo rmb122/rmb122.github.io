@@ -1,10 +1,10 @@
 ---
 title: "关于"
 date: 2017-11-04 12:43:05
+hideDate: true
 ---
 
-A student from UCAS && NeSE  
-Former student at HFUT && C1Sec && TEAM SU
+Student @UCAS, CTF player @[NeSE](https://nese.team/).
 
 > 离开书店的时候, 我留下了一把伞. 希望拎着它回家的人, 是你. 
 

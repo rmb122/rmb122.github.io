@@ -9,9 +9,9 @@ tags: [writeup, ddctf]
 
 <!--more-->
 
-# Web
+## Web
 
-## 滴~
+### 滴~
 `http://117.51.150.246/index.php?jpg=TmpZMlF6WXhOamN5UlRaQk56QTJOdz09` 中 `TmpZMlF6WXhOamN5UlRaQk56QTJOdz09`  
 可以看出来是双层 base64 + 一层 base16, 解码得到 flag.jpg, 那么可以得到 index.php 就是 `TmprMlJUWTBOalUzT0RKRk56QTJPRGN3`,  
 就可以直接读源码了, 然而并没有 flag, 也不能读 config.php,  
@@ -19,7 +19,7 @@ tags: [writeup, ddctf]
 各种姿势尝试发现是 `practice.txt.swp`... 有毒, 得到 `f1ag!ddctf.php` 的提示, 用 `f1agconfigddctf.php` 绕过, 得到源码,  
 用 `f1ag!ddctf.php?k=data:,123&uid=123` 即可绕过, 得到 flag.
 
-## WEB 签到题
+### WEB 签到题
 在 `/js/index.js` 找到验证逻辑, 通过 `didictf_username` 的 `header` 来验证, 随便试了个 `admin` 就通过了,  
 得到下一步地址 `/app/fL2XID2i0Cdh.php`,  
 ```php
@@ -58,7 +58,7 @@ imagejpeg($img, '/home/rmb122/gd-out.jpg', 80);
 ```
 010editor 可以解析格式, fuzz 发现在 ScanData 第三个字节后面写 phpinfo() 不会被处理掉, 传上去就拿到 flag 了.  
 
-## homebrew event loop
+### homebrew event loop
 审计源码, 发现  
 ```python
 is_action = event[0] == 'a' 
@@ -82,7 +82,7 @@ def trigger_event(event):
 有 log 的原因, 而且会存在 session 里面, 而 flask 的 session 内的数据是存在 cookie 里面的,  
 通过 [session_cookie_manager](https://github.com/noraj/flask-session-cookie-manager) 直接就可以解码, 得到在 log 里面的 flag.
 
-## 大吉大利,今晚吃鸡~
+### 大吉大利,今晚吃鸡~
 通过浏览器插件 `wappalyzer` (应该是分析 Cookie 名称 `revel_session` 获取的) 可以得到后端是 go 写的,  
 盲猜有整数溢出, 最后试出来 `2 ** 32` 也就是 `4294967296` 可以溢出买到票, 里面比较迷,  
 还以为得什么洞拿到机器人的 token, 结果我自己又注册了个号, 发现可以直接自己移除自己...  
@@ -116,7 +116,7 @@ for i in range(1,999):
     time.sleep(3)
 ```
 
-## mysql弱口令
+### mysql弱口令
 既然是客户端连服务端, 可以想到是 mysql 客户端的文件读取漏洞, 有现成的[项目](https://github.com/allyshka/Rogue-MySql-Server)  
 然后一开始没发现 `agent.py` 里面是用的 `netstat`, 我用普通用户权限跑过不了检测 233, 就先去做上面一题了,  
 之后看了下源码用 `root` 跑就没问题了, 成功读 `/etc/passwd`, 接下来直接尝试读 `/etc/shadow`, 竟然读的了, 应该是 root 权限跑的 bot,  
@@ -124,9 +124,9 @@ for i in range(1,999):
 那么直接读数据库文件就可以了, `/var/lib/mysql/security/flag.ibd`, 拿到 flag.
 
 
-# Reverse
+## Reverse
 
-## Windows Reverse1
+### Windows Reverse1
 `upx -d` 直接脱壳, 但是不知道为什么跑不了 233, 最后还是用的 `ida` 动态调试原程序, 发现就是对输入的字符替换一下, 写个脚本就行  
 ```python
 sbox = '''~}|{zyxwvutsrqponmlkjihgfedcba`_^]\[ZYXWVUTSRQPONMLKJIHGFEDCBA@?>=<;:9876543210/.-,+*)(\x27&%$#"! '''
@@ -139,7 +139,7 @@ for i in flag:
     print(revSbox[i], end='')
 ```
 
-## Windows Reverse2
+### Windows Reverse2
 用了没听说过的壳, 于是就手动找 OEP 脱了, 然而也跑不了, 只能 F5 233, 不过这也足够了, 发现第一层  
 就是 hex2bin, 然后第二层用了 std::string, 看不出来是啥, 动态调发现其实就是个 base64encode, 结果是 `reverse+` 就通过  
 那么同样一个脚本搞定  
@@ -152,12 +152,12 @@ flag = base64.b16encode(flag)
 print(flag)
 ```
 
-# MISC
+## MISC
 
-## 真-签到题
+### 真-签到题
 公告最底下就是啦
 
-## 北京地铁
+### 北京地铁
 不得不说这题脑洞是真的大... `Stegsolve.jar` 可以直接提取出隐写的东西, 但是不知道有啥用...  
 最后提示三放出来以后, 谷歌搜图搜到原图, 发现把二号线的颜色给换了, `号` 和 `线` 字周围的颜色不一致就是没 PS 好,  
 233, 然后找了半天差别, 发现 `魏公村` 的颜色跟别的站点不一样, 随便试了一下拼音发现竟然就是秘钥, 惊了...  
@@ -183,7 +183,7 @@ if res[:2] == b"DDCTF":
 print(res)
 ```
 
-## MulTzor
+### MulTzor
 感觉是 xor, 随手丢到之前看[老外](https://ctftime.org/writeup/3656)做题发现的[工具](https://github.com/nccgroup/featherduster),  
 autopwn 一下直接就出 flag 了, 不得不说太强了. 
 ```
@@ -204,7 +204,7 @@ Processing chunk 78 of 78
 The flag is: DDCTF{07b1b46d1db28843d1fd76889fea9b36}
 ```
 
-## [PWN] strike
+### [PWN] strike
 read 不会在读取的数据后面加 \x00, 于是就可以通过 fprintf 泄露 setbuf 地址,  
 然后算出基地址. password 长度输 -1, 就可以绕过长度限制, 直接栈溢出, 之后就是 rop 了.  
 
@@ -234,7 +234,7 @@ p.send(payload)
 p.interactive()
 ```
 
-## Wireshark
+### Wireshark
 找 HTTP 流量, 可以找到几张图, 有一张图损坏无法打开, 发现 crc 不对, 修复一下就是秘钥,  
 得到 `57pmYyWt`, 然而不知道是啥隐写, 最后通过流量记录发现访问过 `http://tools.jb51.net/`,  
 可以在上面找到一个图片隐写, 把图片都试了一下最后发现那张比较大的图片可以解出 flag,  
@@ -243,7 +243,7 @@ flag+AHs-44444354467B5145576F6B63704865556F32574F6642494E37706F67495773463034695
 ```
 把里面的 `44444354467B5145576F6B63704865556F32574F6642494E37706F6749577346303469526A747D`, 解个 hex 就拿到 flag.  
 
-## 联盟决策大会
+### 联盟决策大会
 Shamir 秘密分享方案, 密码学刚学, 在 [wiki](https://en.wikipedia.org/wiki/Shamir%27s_Secret_Sharing) 上有个挺好的脚本,  
 题目相当于用两次 Shamir, 这样就可以让两个组织都到才能解密, 把脚本照着这个思路稍微改一下就能拿到 flag,  
 ```python

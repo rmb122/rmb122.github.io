@@ -2,7 +2,7 @@
 title: 自制一个简单的 Hashpump
 date: 2019-05-11 00:02:02
 tags: [crypto]
-mathjax: true
+katex: true
 ---
 
 在学完 MD5/SHA1 之后, 很快就能搞懂 `hashpump` 的原理, 本质是因为类 `MD` 哈希函数  

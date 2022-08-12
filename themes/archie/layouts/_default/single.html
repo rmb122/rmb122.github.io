@@ -3,7 +3,7 @@
 	<article>
 		<div class="title">
 			<h1 class="title">{{ .Title }}</h1>
-			<div class="meta">发表于 {{ dateFormat "2006 年 1 月 2 日" .Date }}{{ if .Draft }} <span class="draft-label">草稿</span> {{ end }}</div>
+			<div class="meta">{{ if not .Params.HideDate }} 发表于 {{ dateFormat "2006 年 1 月 2 日" .Date }} {{ end }} {{ if .Draft }} <span class="draft-label">草稿</span> {{ end }}</div>
 		</div>
 		{{ if isset .Params "tldr" }}
 		<div class="tldr">
