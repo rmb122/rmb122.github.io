@@ -251,8 +251,8 @@ justify-content: space-between;
   color:white;
   background-color: var(--hovercolor); 
 }
-svg{
-  max-height: 15px;
+svg.feather{
+  max-height: 1rem;
 }
 .soc:hover{
   color: white;
