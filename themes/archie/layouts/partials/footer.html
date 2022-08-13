@@ -1,6 +1,6 @@
 <footer>
   <div class="footer-info">
-    {{ dateFormat "2006" now }} {{ with .Site.Copyright }} {{ . }} {{ end }}
+    © 2017 - {{ dateFormat "2006" now }}, {{ with .Site.Copyright }} {{ . }} {{ end }}
   </div>
   <div style="display:flex">
     <span class="border"></span>
@@ -12,7 +12,7 @@
 <script>feather.replace()</script>
 
 {{ if .Params.katex }}{{ partial "katex.html" . }}{{ end }}
-{{ if not .Site.IsServer }}{{ template "_internal/google_analytics_async.html" . }}{{ end }}
+{{ if not .Site.IsServer }}{{ template "_internal/google_analytics.html" . }}{{ end }}
 <script src="{{ .Site.BaseURL }}js/medium-zoom.min.js"></script>
 <script>
   for (let img of document.getElementsByTagName('img')) {

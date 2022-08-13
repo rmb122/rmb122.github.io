@@ -8,8 +8,8 @@ tags: [hgame, writeup]
 
 随便 fuzz 一下发现 404 页面有模板注入, http://118.25.18.223:3001/asd%7B%7Bconfig%7D%7D.  
 拿到 `'SECRET_KEY': '9RxdzNwq7!nOoK3*'`, 把 session 里的 user_id 改成 `1` 就行了.
-![](https://i.loli.net/2019/03/21/5c93a6120d105.png)
-![](https://i.loli.net/2019/03/21/5c93a611dc09d.png)
+![](https://i.loli.net/2019/03/21/5c93a6120d105.png#center)
+![](https://i.loli.net/2019/03/21/5c93a611dc09d.png#center)
 
 <!--more-->
 
@@ -52,8 +52,8 @@ class SessionsController extends Controller
 注册名称为 `123' union select password from users where id =1#`,  
 就可以拿到管理员的加密过的密码  
 
-![](https://i.loli.net/2019/03/21/5c93a611b6a32.png)  
-![](https://i.loli.net/2019/03/21/5c93a63b613bd.png)  
+![](https://i.loli.net/2019/03/21/5c93a611b6a32.png#center)  
+![](https://i.loli.net/2019/03/21/5c93a63b613bd.png#center)  
 
 同理  `123' union select email from users where id =1#`  
 拿到 email `admin@hgame.com`  
@@ -80,7 +80,7 @@ s:16:"9pqfPIer0Ir9UUfR";
 随缘扫了一下端口找到 `9876` 端口开着 http, 竟然正是这个 spring-boot-actuator  
 访问 `http://119.28.26.122:9876/mappings` 就可以拿到所有的路由  
 
-![](https://i.loli.net/2019/03/21/5c93a6119f52e.png)
+![](https://i.loli.net/2019/03/21/5c93a6119f52e.png#center)
 
 题目是这两个 `/you_will_never_find_this_interface`, `/secret_flag_here`,  
 看了一下是 SSRF, 试了一会发现 DNS 请求会请求两次, 可以采用 DNS Rebinding,  
@@ -353,7 +353,7 @@ register("123123123", "1231231231")
 ```
 
 然后就守株待兔吧 233  
-![](https://i.loli.net/2019/03/21/5c93a61185745.png)
+![](https://i.loli.net/2019/03/21/5c93a61185745.png#center)
 
 
 ## HappyXss

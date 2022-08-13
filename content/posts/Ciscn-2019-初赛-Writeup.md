@@ -77,14 +77,14 @@ for _ in range(999):
         if i == table[-1]:
             raise Exception
 ```
-![](https://i.loli.net/2019/04/25/5cc08eb862dd6.png)
+![](https://i.loli.net/2019/04/25/5cc08eb862dd6.png#center)
 
 最后得到 admin 的密码为 `F1AG@1s-at_/fll1llag_h3r3`, 尝试直接 load_file读取失败.  
 应该是没有权限, 随即在web上尝试登录admin, 发现是 mysql 客户端连接并执行语句的服务.  
 猜测有客户端读任意文件的漏洞, 可以直接拿到flag文件.
 
-![](https://i.loli.net/2019/04/25/5cc08eb884ce6.png)
-![](https://i.loli.net/2019/04/25/5cc08eb889b62.png)
+![](https://i.loli.net/2019/04/25/5cc08eb884ce6.png#center)
+![](https://i.loli.net/2019/04/25/5cc08eb889b62.png#center)
 
 
 ## warmup

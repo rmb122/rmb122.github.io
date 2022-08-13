@@ -463,4 +463,4 @@ curl 'http://45.77.219.97/authorszone/index.php' -H 'Cache-Control: max-age=0' -
 结合 url 的参数, 在 `http://45.77.219.97/books/3ba9318b509034cb7b506df0faef4d80.fb2enc` 就能下到 Flag Book 啦.  
 解密一下, 然后就可以找到在里面的 flag 一枚
 
-![](https://i.loli.net/2019/07/22/5d351ec06428750220.png)
+![](https://i.loli.net/2019/07/22/5d351ec06428750220.png#center)

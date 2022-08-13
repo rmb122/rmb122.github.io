@@ -437,7 +437,7 @@ print(res.text)
 
 部分源码:  
 
-![](https://i.loli.net/2020/06/29/Gde8ry9uX3TKjR7.png)  
+![](https://i.loli.net/2020/06/29/Gde8ry9uX3TKjR7.png#center)  
 
 访问 `http://pwnable.org:5000/SUp3r_S3cret_URL/0Nly_4dM1n_Kn0ws`, 然后题目一转 xss... 要求 alert(1).  
 因为这里有 csp 限制, 没法直接在 svg 里面用 script alert, 导致这里卡了挺久, 然后发现 imagemagick 生成的文件拓展名是可控的, 也就是第二步, 得到图片的路径是 `http://pwnable.org:5000/image/gzVIsH/png`, 修改最后的 png 到 svg, 就会如蜜传如蜜, 直接输出一张的 svg, 而且 content-type 也会改变. 不过这里后端限制了扩展名长度只能为 3, 否则会直接报错.  

@@ -164,7 +164,7 @@ cli.console()
 
 注意到这里是用 AES 解密输入的数据, 结合 CBC 模式
 
-![CBC](https://i.loli.net/2019/05/19/5ce17ac53478934702.png)
+![CBC](https://i.loli.net/2019/05/19/5ce17ac53478934702.png#center)
 
 我们可以输入两个相同分块(b1 + b1')长度的数据, 其中解密结果的第二块(o2)是这样算出来的
 `xor(AESdec(b1'), b1) = o2`
@@ -186,12 +186,12 @@ cli.console()
 
 接下来可以看到 T 被完全修改了, 首先了解一下 T 变换是干嘛的,
 这里借一张图说明
-![](https://i.loli.net/2019/05/22/5ce5502037ede37184.png)
+![](https://i.loli.net/2019/05/22/5ce5502037ede37184.png#center)
 
 注: ShiftRow 与 ByteSub 之间的顺序不敏感, 可以在进入变换之前就 ShiftRow 好, 就跟上图一样, 取的不是原矩阵的一行, 而是 ShiftRow 之后矩阵的一行
 
 T 变换是结合了 ByteSub MixColumn, 将 AES 轮函数中的两步并到一起, 加速效率的一种方法, 如果按照原来的矩阵乘法
-![](https://i.loli.net/2019/05/22/5ce551bb6234249389.png)
+![](https://i.loli.net/2019/05/22/5ce551bb6234249389.png#center)
 ```
 d0 = 2 * ByteSub(b0) + 3 * ByteSub(b1) + 1 * ByteSub(b2) + 1 * ByteSub(b3)
 d1 = 1 * ByteSub(b0) + 2 * ByteSub(b1) + 3 * ByteSub(b2) + 1 * ByteSub(b3)

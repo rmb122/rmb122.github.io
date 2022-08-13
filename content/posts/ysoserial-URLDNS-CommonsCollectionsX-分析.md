@@ -12,14 +12,14 @@ tags: [web, java]
 
 最简单的一个, 这个成因就是 `java.util.HashMap` 重写了 `readObject`, 在反序列化时会调用 `hash` 函数计算 key 的 hashCode.
 
-![](https://i.loli.net/2020/01/20/onW3ErpxJT2mK1z.png)  
-![](https://i.loli.net/2020/01/20/xJrPjCgF5eh1Kfs.png)
+![](https://i.loli.net/2020/01/20/onW3ErpxJT2mK1z.png#center)  
+![](https://i.loli.net/2020/01/20/xJrPjCgF5eh1Kfs.png#center)
 
 
 而 `java.net.URL` 的 hashCode 在计算时会调用 `getHostAddress` 来解析域名, 从而发出 DNS 请求.
 
-![](https://i.loli.net/2020/01/20/tzER6LIsc125OU7.png)  
-![](https://i.loli.net/2020/01/20/53j1fLybKRUHsYV.png)  
+![](https://i.loli.net/2020/01/20/tzER6LIsc125OU7.png#center)  
+![](https://i.loli.net/2020/01/20/53j1fLybKRUHsYV.png#center)  
 
 可以理解为, 在序列化 HashMap 类的对象时, 为了减小序列化后的大小, 并没有将整个哈希表保存进去, 而是仅仅保存了所有内部存储的 key 和 value. 所以在反序列化时, 需要重新计算所有 key 的 hash, 然后与 value 一起放入哈希表中. 而恰好, URL 这个对象计算 hash 的过程中用了 getHostAddress 查询了 URL 的主机地址, 自然需要发出 DNS 请求.
 
@@ -386,17 +386,17 @@ Map<String, Object> mv = new LinkedHashMap();
 看看 java 对 AnnotationInvocationHandler 的修复
 
 ysoseiral 这个 exp 在 2015 年初被发布  
-![](https://i.loli.net/2020/01/21/qfzXF9TOvtIoKxb.png)
+![](https://i.loli.net/2020/01/21/qfzXF9TOvtIoKxb.png#center)
 
 查看 git 的 history, 可以看到在 2015 年 12 月被修复
-![](https://i.loli.net/2020/01/21/fBmpoH35E1hgj9e.png)  
+![](https://i.loli.net/2020/01/21/fBmpoH35E1hgj9e.png#center)  
 
 java8u71 2016 年初发布  
-![](https://i.loli.net/2020/01/21/RVu7qSnNl2FQBt6.png)  
+![](https://i.loli.net/2020/01/21/RVu7qSnNl2FQBt6.png#center)  
 
 再看 commons-collections3 的修复:
 
-![](https://i.loli.net/2020/01/23/XgxnUcD3A1rJFGb.png)  
+![](https://i.loli.net/2020/01/23/XgxnUcD3A1rJFGb.png#center)  
 
 在 readObject, writeObject 时都做了检测, 需要设置对应的 Property 为 true 才能反序列化 InvokerTransformer.  
 
@@ -545,7 +545,7 @@ public class CommonsCollections2 {
 
 4 的修复方法比较粗暴, 直接干掉了 InvokerTransformer 的 Serializable 继承.  
 
-![](https://i.loli.net/2020/01/27/2aVoPLzdcXFfRj5.png)
+![](https://i.loli.net/2020/01/27/2aVoPLzdcXFfRj5.png#center)
 
 
 ## CommonsCollections3

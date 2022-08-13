@@ -27,9 +27,9 @@ Ubuntu 18.04 / apt install php php-fpm php-imagick
 
 第一眼看上去, 直接给了 webshell, 要求是执行根目录下的 `/readflag`,  
 先执行一波 `phpinfo()` 看看信息.
-![](https://i.loli.net/2019/03/25/5c98caa8c8e93.png)  
-![](https://i.loli.net/2019/03/25/5c98caa8cc2e2.png)  
-![](https://i.loli.net/2019/03/25/5c98caa90a2f7.png)  
+![](https://i.loli.net/2019/03/25/5c98caa8c8e93.png#center)  
+![](https://i.loli.net/2019/03/25/5c98caa8cc2e2.png#center)  
+![](https://i.loli.net/2019/03/25/5c98caa90a2f7.png#center)  
 
 可以看到是 lnp 64 位环境, disable_function 如下  
 ```
@@ -37,12 +37,12 @@ pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped
 ```
 
 Imagick 信息如下  
-![](https://i.loli.net/2019/03/25/5c98caa92f03a.png)
+![](https://i.loli.net/2019/03/25/5c98caa92f03a.png#center)
 
 
 ## 题解
 
-可以看到禁用了全部能直接执行程序的函数, 顺便还禁用了 mail, 不然的话可以直接用 `LD_PRELOAD` 来执行系统命令. 具体可以看这个[项目](https://github.com/yangyangwithgnu/bypass_disablefunc_via_LD_PRELOAD).  
+可以看到禁用了全部能直接执行程序的函数, 顺便还禁用了 mail, 不然的话可以直接用 `LD_PRELOAD` 来执行系统命令. 具体可以看这个[项目](https://github.com/yangyangwithgnu/bypass_disablefunc_via_LD_PRELOAD#center).  
 
 接下来第一反应是通过 ghostscript 的 0day 打一波试试, 但尝试了几次全部都没有反应... 好吧没有报错太蛋疼了, 我们还是照着提示搭一波环境吧.  
 
@@ -117,15 +117,15 @@ $ cat /etc/ImageMagick-6/delegates.xml
 其中有系统自带的 mv, 这肯定是能执行成功的, 我们只要通过转换格式就能调用这个 delegate.  
 通过 strace 也可以发现确实调用了 mv, 即使因为 JxrEncApp 不存在导致图片转换失败, 但只要因为 mv 调起了新进程, 我们就能执行任意命令.
 
-![](https://i.loli.net/2019/03/25/5c98d6280c9a5.png)  
-![](https://i.loli.net/2019/03/25/5c98d627f3530.png)  
+![](https://i.loli.net/2019/03/25/5c98d6280c9a5.png#center)  
+![](https://i.loli.net/2019/03/25/5c98d627f3530.png#center)  
 
 这样, 就可以通过 `ImageMagick` 来触发新进程的产生, 并通过修改 `LD_PRELOAD` 的方式来执行任意系统命令.  
 
 最后 exp 如下, 写入so文件  
-![](https://i.loli.net/2019/03/25/5c98caa992bb6.png)  
+![](https://i.loli.net/2019/03/25/5c98caa992bb6.png#center)  
 修改 `LD_PRELOAD` 并转换图片格式, 最终执行系统变量 `EVIL_CMDLINE` 里的命令.  
-![](https://i.loli.net/2019/03/25/5c98caa98b8aa.png)  
+![](https://i.loli.net/2019/03/25/5c98caa98b8aa.png#center)  
 
 PS. 写入 so 文件的时候记得把 base64 里的 `+` 给编码, 不然会被当成空格.  
 

@@ -4,7 +4,7 @@ date: 2018-11-12 00:18:29
 tags: [hctf, writeup]
 ---
 
-![](https://i.loli.net/2019/03/08/5c82768fe4d67.jpg)  
+![](https://i.loli.net/2019/03/08/5c82768fe4d67.jpg#center)  
 和师傅们肝了两天, 最后排名 25, 看看一堆没做出来的题, 感到自己深深的菜... 
 
 <!--more-->
@@ -13,19 +13,19 @@ tags: [hctf, writeup]
 ----------
 
 在改密码的地方有 hint,  
-![](https://i.loli.net/2019/03/08/5c8276960e9a1.jpg)  
+![](https://i.loli.net/2019/03/08/5c8276960e9a1.jpg#center)  
 
 得到源码后第一个发现的是可能存在条件竞争, 题目里面是先将 `session` 里面的 `name` 给改了再去验证密码的  
 
-![](https://i.loli.net/2019/03/08/5c82769adc533.jpg)  
+![](https://i.loli.net/2019/03/08/5c82769adc533.jpg#center)  
 
 但之后发现 `flask` 不是像 `php` 一样将 `session` 保存在服务端, 而是保存在 `cookies` 里面的, 所以这里其实是不存在条件竞争的. 最后发现其实 `SECRET_KEY` 已经给我们了, 完全可以伪造 `session`.  
 
-![](https://i.loli.net/2019/03/08/5c82769e190bc.jpg)  
+![](https://i.loli.net/2019/03/08/5c82769e190bc.jpg#center)  
 
 这里估计是怕太明显, `environ` 里面是没 `SECRET_KEY` 的 (看了其他的 WriteUp 其实就是出题人环境没配好 233), 所以直接用 `cjk123` 就可以了. 在 [github](https://github.com/noraj/flask-session-cookie-manager/stargazers) 上可以找到用 `SECRET_KEY` 来生成 `session` 的小工具, 先解码看看结构后改一下 `name` 就可以了. 最后把现在的换成生成的 `session` 访问 `index` 就可以 get flag 了, 不过这 flag... 是我们非预期解还是这个题目是中间没做完强行改了一下放出来的 0.0  
 
-![](https://i.loli.net/2019/03/08/5c8276a0c91d9.jpg)
+![](https://i.loli.net/2019/03/08/5c8276a0c91d9.jpg#center)
 
 0x02 hide and seek
 ------------------
@@ -196,7 +196,7 @@ app.config['SECRET_KEY'] = str(random.random()*100)
 
 之后伪造成为 `admin` 就可以了, flag get
 
-![](https://i.loli.net/2019/03/08/5c8277dba1c00.png)  
+![](https://i.loli.net/2019/03/08/5c8277dba1c00.png#center)  
 
 
 0x03 xor game
@@ -262,4 +262,4 @@ D'`;M?!\mZ4j8hgSvt2bN);^]+7jiE3Ve0A@Q=|;)sxwYXtsl2pongOe+LKa'e^]\a`_X|V[Tx;:VONS
 ```
 
 因为之前做了科大的 `hackergame` 感觉出来是 `malbolge`, 把最后的 `c` 删掉就可以跑了, 运行一下就得到 flag.  
-![](https://i.loli.net/2019/03/08/5c82782071137.png)
+![](https://i.loli.net/2019/03/08/5c82782071137.png#center)

@@ -6,7 +6,7 @@ tags: [misc]
 
 最近发现在打开 IDEA, VSCode 项目时候, 都增加了 "信任此项目的提示". 结合这些 IDE 的特点, 确实可能存在在打开项目时产生 RCE 的风险, 特别是进行代码审计的安全人员, 会经常打开未知的项目. 正常人肯定不会贸然的执行未知的代码, 但是对于打开项目时这个弹出的框框, 可能并不会特别在意. 接下来分析一些通过这些配置来进行 RCE 的方法.  
 
-![](https://i.loli.net/2021/10/02/ToPQhtryzgDUdCs.png)
+![](https://i.loli.net/2021/10/02/ToPQhtryzgDUdCs.png#center)
 
 <!--more-->
 
@@ -87,7 +87,7 @@ maven 在经过测试后, 似乎 IDEA 并没有真正的运行 `mvn` 命令, 在
 
 除了这些常用的 build 工具, IDEA 本身也自带一个 `Startup Task` 功能, 在 `Tools -> Startup Task` 中可以找到, 我们可以自己添加一个 Shell Script 任务. 这些配置会保存在 `.idea/workspace.xml` 中, 并且这个利用方式应该可以给 Jetbrains 全家桶来使用, 会在项目打开时自动运行  
 
-![](https://i.loli.net/2021/10/02/51Hy7hcepfXiGgC.png)  
+![](https://i.loli.net/2021/10/02/51Hy7hcepfXiGgC.png#center)  
 
 ## VSCode
 

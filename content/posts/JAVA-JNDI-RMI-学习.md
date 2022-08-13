@@ -14,7 +14,7 @@ RMI / JNDI 在反序列化, fastjson 漏洞利用的时候都经常出现, 学�
 
 盗一张图  
 
-![1.png](https://i.loli.net/2020/02/19/pMiX4BNVRzeadD6.png)
+![1.png](https://i.loli.net/2020/02/19/pMiX4BNVRzeadD6.png#center)
 
 加上一些示例,  
 
@@ -137,7 +137,7 @@ public class DeserializeObject implements Serializable {
 结果如下:  
 
 RMIServiceProvider 输出:  
-![2.png](https://i.loli.net/2020/02/19/ur2VUMmH5l9IDvz.png)
+![2.png](https://i.loli.net/2020/02/19/ur2VUMmH5l9IDvz.png#center)
 
 大致理解起来还是不太困难的, 客户端通过 `Registry`, 调用 `RMIServiceProvider` 上的服务.  
 可以看看 wireshark 的流量, 更清晰一些.  

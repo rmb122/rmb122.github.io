@@ -101,11 +101,11 @@ if not os.path.isfile(abspath):
 ```
 可以看到没有任何的过滤, 就把 `path` 拼进了 `filepath`, 存在目录穿越, 可以任意文件读.  
 
-![](https://i.loli.net/2019/08/26/JbZuMYALTe7ivFn.png)
+![](https://i.loli.net/2019/08/26/JbZuMYALTe7ivFn.png#center)
 
 读 `/etc/passwd` 找到用户 ctf, 继续 fuzz 一些常用文件, 可以读到 `/home/ctf/.bash_history`,  
 
-![](https://i.loli.net/2019/08/26/5Ay41drtXPIopGT.png)
+![](https://i.loli.net/2019/08/26/5Ay41drtXPIopGT.png#center)
 
 给了 `ftp niconiconi` 这应该就是题目描述里的内网机器了, 但是我们此时并没有连接 ftp 服务的能力.  
 继续审计源码, 可以发现 `gateone/applications/terminal/plugins/ssh/scripts/ssh_connect.py` 里的  
@@ -125,16 +125,16 @@ elif protocol == 'telnet':
 可以发现其实支持 `telnet`, 只是没有写出来..., 而 `telnet` 基本上跟 `nc` 差不多, 我们可以手敲 ftp 命令来获取 flag  
 随便试一下, 发现 `ctf`, `ctf` 就是账号密码  
 
-![](https://i.loli.net/2019/08/26/mhANxTvoCfXYMaQ.png)  
+![](https://i.loli.net/2019/08/26/mhANxTvoCfXYMaQ.png#center)  
 
-![](https://i.loli.net/2019/08/26/OqzgWR47sx3NED9.png)
+![](https://i.loli.net/2019/08/26/OqzgWR47sx3NED9.png#center)
 
 这里注意 ftp 传输文件还需要开另一个链接, 可以选择客户端链接服务器 (PASV) 或者 服务器链接客户端 (PORT), 这里当然是客户端链接服务器.  
 服务器会返回一个 (ip1, ip2, ip3, ip4, p1, p2), p1 * 256 + p2 就是我们需要链接的端口, 然后用 RERT 命令就能读取文件了.  
 
 这里还有个小插曲, 这个应用还自带回放功能, 于是可以偷看别人的 flag...
 
-![](https://i.loli.net/2019/08/26/7tXZLBCm8nVlvuU.png)  
+![](https://i.loli.net/2019/08/26/7tXZLBCm8nVlvuU.png#center)  
 
 所以我猜后面改题目, 把 flag 设成一半在本机 `/flag` 上, 一半在内网 ftp 的原因就是这个 2333  
 而且后面又改了一次, 还加了一题 `Easy Realworld Challenge 2`, 可能就是某位大佬发现的 RCE 导致了非预期  
@@ -175,7 +175,7 @@ while not validated:
 
 但是这个不仅仅有个 ssh 链接的功能, 还能生成 ssh 秘钥,  
 
-![](https://i.loli.net/2019/08/26/s7pjlYCm6RLKhPV.png)  
+![](https://i.loli.net/2019/08/26/s7pjlYCm6RLKhPV.png#center)  
 
 我们仔细来看这个 `gateone/applications/terminal/plugins/ssh/ssh.py` 第 615 行 `generate_new_keypair`,  
 ```python
@@ -225,10 +225,10 @@ def openssh_generate_new_keypair(self, name, path,
 
 这里可以用 Burpsuite 来改 websocket 的内容  
 
-![](https://i.loli.net/2019/08/26/wPzJEIvnuGDHyqj.png)
+![](https://i.loli.net/2019/08/26/wPzJEIvnuGDHyqj.png#center)
 
 然后结合之前的任意文件读取来读命令执行的结果    
 
-![](https://i.loli.net/2019/08/26/PctX1T9qjbD7KM2.png)
+![](https://i.loli.net/2019/08/26/PctX1T9qjbD7KM2.png#center)
 
 然后就可以发现 flag 啦, 可以直接读. 另外, 除了这个地方还有其他地方也有同样的问题, 这里不再一一举出. 

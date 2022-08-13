@@ -1,10 +1,11 @@
 {{ define "main" }}
 {{ if isset .Data "Term" }}
-	<h1>标签 - "{{ .Data.Term }}"</h1>
-	{{ else }}
-	<h1 class="page-title">归档</h1>
+<h1>标签 - "{{ .Data.Term }}"</h1>
+{{ else }}
+<h1 class="page-title">归档</h1>
 {{ end }}
 	{{- range $value := .Data.Pages.GroupByDate "2006" -}}
+	<div class="description">
 		<h2>{{- $value.Key -}}</h2>
 		<ul class="posts">
 				{{- range $value.Pages -}}
@@ -15,5 +16,6 @@
 					{{- end -}}
 				{{- end -}}
 		</ul>
+	</div>
 	{{- end -}}
 {{ end }}
