@@ -185,7 +185,7 @@ footer {
   align-items: center;
   border-top: 0.2rem solid var(--bordercl);
   padding: 1rem 0rem;
-  margin-top: 2rem;
+  margin-top: 1rem;
 }
 .soc {
   display: flex;
@@ -303,12 +303,16 @@ table td{
   border: 1px solid #dfe2e5;
 }
 
+.license {
+  border-bottom: 0;
+}
+
 .list > .list-item:not(:last-child) {
   margin-bottom: 4rem;
 }
 
 .list > .list-item:last-child {
-  margin-bottom: 1rem;
+  margin-bottom: 2rem;
 }
 
 .pagination {
@@ -332,4 +336,48 @@ table td{
 }
 ::-webkit-scrollbar-thumb:active{
   background: rgba(0,0,0,.9);
+}
+
+ul.pagination li {
+  text-indent: 0ch;
+}
+
+ul.pagination > li::before {
+  content: '';
+  font-weight: bold;
+}
+
+.pagination {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  justify-content: center;
+}
+
+.page-link {
+  margin-left: 0.25rem;
+  margin-right: 0.25rem;
+  position: relative;
+  display: block;
+  padding: 0.3rem 0.7rem;
+  text-align: center;
+  line-height: 1.25;
+}
+
+img[src$='#center']
+{
+    display: block;
+    margin: 1rem auto;
+}
+
+img[src$='#floatleft']
+{
+    float: left;
+    margin: 1rem;
+}
+
+img[src$='#floatright']
+{
+    float: right;
+    margin: 1rem;
 }
