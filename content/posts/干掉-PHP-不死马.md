@@ -39,9 +39,13 @@ while (1) {
 但是其实要干掉不死马, 步骤都差不多  
 
 ## 干掉不死马
+
 ### php-apache
+
 在这种模式下, 会在 fork 的一个 apache 进程里面以低权限用户来处理 php, 如下图  
-![](https://i.loli.net/2019/04/04/5ca626d682f9d.png#center)  
+
+![](https://i.loli.net/2019/04/04/5ca626d682f9d.png#center)
+
 我们只要杀掉所以这些进程就行, 但在 AWD 中一般是没 root 权限的, 我们要干掉这些只能以低权限的身份来. 这里有两种办法  
 1. 给自己在 web 目录下写一个 php, 里面是 
 ```php
@@ -57,8 +61,10 @@ system("bash -i >& /dev/tcp/127.0.0.1/23333 0>&1");
 ```
 
 ### php-fpm
+
 其实跟上面差不多, 只是进程名不同, 因为 fpm 是独立的服务, 不同于上面 apache 里面直接调用 php 的 api  
-![](https://i.loli.net/2019/04/05/5ca62d252ca42.png#center)  
+![](https://i.loli.net/2019/04/05/5ca62d252ca42.png#center)
+
 ```php
 <?php
 system("kill `ps -ef | grep php-fpm | grep -v grep | awk '{print $2}'`");

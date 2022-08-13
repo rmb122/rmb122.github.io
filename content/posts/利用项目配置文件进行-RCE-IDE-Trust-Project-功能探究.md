@@ -87,7 +87,7 @@ maven 在经过测试后, 似乎 IDEA 并没有真正的运行 `mvn` 命令, 在
 
 除了这些常用的 build 工具, IDEA 本身也自带一个 `Startup Task` 功能, 在 `Tools -> Startup Task` 中可以找到, 我们可以自己添加一个 Shell Script 任务. 这些配置会保存在 `.idea/workspace.xml` 中, 并且这个利用方式应该可以给 Jetbrains 全家桶来使用, 会在项目打开时自动运行  
 
-![](https://i.loli.net/2021/10/02/51Hy7hcepfXiGgC.png#center)  
+![](https://i.loli.net/2021/10/02/51Hy7hcepfXiGgC.png#center)
 
 ## VSCode
 

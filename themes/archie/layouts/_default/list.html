@@ -11,7 +11,7 @@
 				{{- range $value.Pages -}}
 					{{- if (not (in (.Site.Params.excludedTypes | default (slice "page")) .Type)) -}}
 					<li class="post">
-						<a href="{{ .RelPermalink }}">{{.Title}}</a> <span class="meta">{{ dateFormat "2006 年 1 月 2 日" .Date }}{{ if .Draft }} <span class="draft-label">草稿</span> {{ end }}</span>
+						<a href="{{ .RelPermalink }}">{{.Title}}</a>&nbsp;<span class="meta">{{ dateFormat "2006 年 1 月 2 日" .Date }}{{ if .Draft }} <span class="draft-label">草稿</span> {{ end }}</span>
 					</li>
 					{{- end -}}
 				{{- end -}}

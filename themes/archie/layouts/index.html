@@ -11,7 +11,7 @@
 				{{ range $paginator.Pages }}
 				<section class="list-item">
 					<h1 class="title"><a href="{{ .RelPermalink }}">{{.Title}}</a></h1>
-					<time>发表于 {{ dateFormat "2006 年 1 月 2 日" .Date }}{{ if .Draft }} <span class="draft-label">草稿</span> {{ end }}</time>
+					<span class="meta">发表于 {{ dateFormat "2006 年 1 月 2 日" .Date }}{{ if .Draft }} <span class="draft-label">草稿</span> {{ end }}</span>
 					<br><div class="description">
 						{{ if isset .Params "description" }}
 						{{ .Description }}
@@ -19,7 +19,7 @@
 						{{ .Summary }}
 						{{ end }}
 					</div>
-                    <a class="readmore" href="{{ .RelPermalink }}">阅读全文 »</a>
+                    <p><a class="readmore" href="{{ .RelPermalink }}">阅读全文 »</a></p>
 				</section>
 				{{ end }}
 			</main>

@@ -452,4 +452,4 @@ d = '''
 
 不过感觉可能也是非预期? 因为看源码还有个可控 callback name 的 jsonp 没用上.  
 
-PS. 这里其实可以直接读 /proc/self/environ 来读环境变量, 可惜 imagemagick 碰到 \x00 就停止读取了, 导致只能读取第一个环境变量 PATH, 都不到后面的 flag
+PS. 这里其实可以直接读 /proc/self/environ 来读环境变量, 可惜 imagemagick 碰到 \x00 就停止读取了, 导致只能读取第一个环境变量 PATH, 读不到后面的 flag

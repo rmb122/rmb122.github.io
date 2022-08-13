@@ -1,0 +1,8 @@
+{{- $url := urls.Parse .Destination -}}
+{{- $baseHost := (urls.Parse .Page.Site.BaseURL).Host -}}
+
+{{- if or (eq $url.Host "") (eq $url.Host $baseHost) -}}
+    <a href="{{ .Destination | safeURL }}" title="{{ .Title }}">{{ .Text | safeHTML }}</a>
+{{- else -}}
+    <a href="{{ .Destination | safeURL }}" title="{{ .Title }}" rel="noopener nofollow noreferrer" target="_blank" >{{ .Text | safeHTML }}</a>
+{{- end -}}

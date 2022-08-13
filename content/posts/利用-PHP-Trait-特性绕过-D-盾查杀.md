@@ -46,9 +46,11 @@ $c = new C();
 可以看到用 T 的 `dynamic` 覆盖了 B 的 `dynamic`, 导致了代码执行,  
 个人猜测是 D 盾不支持 `trait`, 没有把里面的 eval 当成代码, 直接给跳过了.  
 
-![](https://i.loli.net/2019/07/25/5d395c8b9e25359401.png#center)  
-![](https://i.loli.net/2019/07/25/5d395c8b9b5f447606.png#center)  
-![](https://i.loli.net/2019/07/25/5d395c8bbdf0329396.png#center)  
+![](https://i.loli.net/2019/07/25/5d395c8b9e25359401.png#center)
+
+![](https://i.loli.net/2019/07/25/5d395c8b9b5f447606.png#center)
+
+![](https://i.loli.net/2019/07/25/5d395c8bbdf0329396.png#center)
 
 而且很神奇的是, 在这一段下面放一段本来过不了的, 也能过 D 盾了.
 

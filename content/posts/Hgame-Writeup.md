@@ -9,6 +9,7 @@ tags: [hgame, writeup]
 随便 fuzz 一下发现 404 页面有模板注入, http://118.25.18.223:3001/asd%7B%7Bconfig%7D%7D.  
 拿到 `'SECRET_KEY': '9RxdzNwq7!nOoK3*'`, 把 session 里的 user_id 改成 `1` 就行了.
 ![](https://i.loli.net/2019/03/21/5c93a6120d105.png#center)
+
 ![](https://i.loli.net/2019/03/21/5c93a611dc09d.png#center)
 
 <!--more-->
@@ -52,8 +53,9 @@ class SessionsController extends Controller
 注册名称为 `123' union select password from users where id =1#`,  
 就可以拿到管理员的加密过的密码  
 
-![](https://i.loli.net/2019/03/21/5c93a611b6a32.png#center)  
-![](https://i.loli.net/2019/03/21/5c93a63b613bd.png#center)  
+![](https://i.loli.net/2019/03/21/5c93a611b6a32.png#center)
+
+![](https://i.loli.net/2019/03/21/5c93a63b613bd.png#center)
 
 同理  `123' union select email from users where id =1#`  
 拿到 email `admin@hgame.com`  
