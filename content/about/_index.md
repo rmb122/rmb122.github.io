@@ -2,9 +2,11 @@
 title: "关于"
 date: 2017-11-04 12:43:05
 hideDate: true
+type: "page"
+layout: "single"
 ---
 
-Student @UCAS, CTF player @[NeSE](https://nese.team/).
+Master student @UCAS, CTF player @[NeSE](https://nese.team/).
 
 > 离开书店的时候, 我留下了一把伞. 希望拎着它回家的人, 是你. 
 

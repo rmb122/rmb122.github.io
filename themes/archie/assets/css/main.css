@@ -162,6 +162,11 @@ h1, h2, h3, h4, h5, h6 {
   margin-top: 2em;
 }
 
+.description h2, h3, h4, h5, h6 {
+  font-size: 1.2rem;
+  margin-top: 1em;
+}
+
 h1::before { color: var(--maincolor); content: '# '; }
 h2::before { color: var(--maincolor); content: '## '; }
 h3::before { color: var(--maincolor); content: '### '; }
@@ -298,6 +303,33 @@ table td{
   border: 1px solid #dfe2e5;
 }
 
-.list-item {
-  margin-bottom: 60px;
+.list > .list-item:not(:last-child) {
+  margin-bottom: 4rem;
+}
+
+.list > .list-item:last-child {
+  margin-bottom: 1rem;
+}
+
+.pagination {
+  text-align: center;
+}
+
+::-webkit-scrollbar {
+  width: 9px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  border-radius: 10px;
+  background: rgba(0,0,0,0.1);
+}
+::-webkit-scrollbar-thumb{
+  border-radius: 10px;
+  background: rgba(0,0,0,0.2);
+}
+::-webkit-scrollbar-thumb:hover{
+  background: rgba(0,0,0,0.4);
+}
+::-webkit-scrollbar-thumb:active{
+  background: rgba(0,0,0,.9);
 }

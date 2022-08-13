@@ -1,17 +1,19 @@
 {{ define "main" }}
 {{ if isset .Data "Term" }}
-<h1>标签 - "{{ .Data.Term }}"</h1>
-{{ else }}
-<h1 class="page-title">归档</h1>
+	<h1>标签 - "{{ .Data.Term }}"</h1>
+	{{ else }}
+	<h1 class="page-title">归档</h1>
 {{ end }}
-
-<ul class="posts">
-	{{- range .Data.Pages -}}
-		{{- if (not (in (.Site.Params.excludedTypes | default (slice "page")) .Type)) -}}
-		<li class="post">
-			<a href="{{ .RelPermalink }}">{{.Title}}</a> <span class="meta">{{ dateFormat "2006 年 1 月 2 日" .Date }}{{ if .Draft }} <span class="draft-label">草稿</span> {{ end }}</span>
-		</li>
-		{{- end -}}
+	{{- range $value := .Data.Pages.GroupByDate "2006" -}}
+		<h2>{{- $value.Key -}}</h2>
+		<ul class="posts">
+				{{- range $value.Pages -}}
+					{{- if (not (in (.Site.Params.excludedTypes | default (slice "page")) .Type)) -}}
+					<li class="post">
+						<a href="{{ .RelPermalink }}">{{.Title}}</a> <span class="meta">{{ dateFormat "2006 年 1 月 2 日" .Date }}{{ if .Draft }} <span class="draft-label">草稿</span> {{ end }}</span>
+					</li>
+					{{- end -}}
+				{{- end -}}
+		</ul>
 	{{- end -}}
-</ul>
 {{ end }}

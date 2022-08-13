@@ -2,6 +2,8 @@
 title: "友链"
 date: 2017-11-04 12:43:05
 hideDate: true
+type: "page"
+layout: "single"
 ---
 
 * Aryb1n: https://aryb1n.github.io/  

@@ -3,20 +3,25 @@
     {{ dateFormat "2006" now }} {{ with .Site.Copyright }} {{ . }} {{ end }}
   </div>
   <div style="display:flex">
-    <a class="border"></a>
+    <span class="border"></span>
     {{- range $index, $key := .Site.Params.Social -}}
     <a class="soc" href="{{ $key.url }}" title="{{ $key.name }}"><i data-feather="{{ $key.icon }}"></i></a>
     {{- end -}}
   </div>
 </footer>
-{{ if not .Site.IsServer }}
-{{ template "_internal/google_analytics_async.html" . }}
-{{ end }}
+<script>feather.replace()</script>
 
 {{ if .Params.katex }}{{ partial "katex.html" . }}{{ end }}
-
-{{- if (isset .Site.Params "social") -}}
+{{ if not .Site.IsServer }}{{ template "_internal/google_analytics_async.html" . }}{{ end }}
+<script src="{{ .Site.BaseURL }}js/medium-zoom.min.js"></script>
 <script>
-  feather.replace()
+  for (let img of document.getElementsByTagName('img')) {
+    mediumZoom(img, {
+      margin: 0,
+      scrollOffset: 40,
+      container: null,
+      template: null,
+      background: 'rgba(0, 0, 0, 0.8)'
+    });
+  }
 </script>
-{{- end -}}

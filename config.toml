@@ -8,11 +8,16 @@ pygmentsCodeFences = true
 pygmentsCodeFencesguesssyntax = true
 pygmentsOptions = "linenos=inline"
 disablePathToLower = true
+googleAnalytics = 'G-1MH3QGWHV5'
 
 [permalinks]
 posts = '/:year/:month/:day/:filename/'
 
+[author]
+name = "rmb122"
+
 [params]
+description = "rmb122's notebook"
 mode = "toggle" # color-mode → light,dark,toggle or auto
 useCDN = false # don't use CDNs for fonts and icons, instead serve them locally.
 
@@ -49,3 +54,8 @@ weight = 5
 name = "GitHub"
 icon = "github"
 url = "https://github.com/rmb122"
+
+[[params.social]]
+name = "RSS"
+icon = "rss"
+url = "https://rmb122.com/index.xml"
