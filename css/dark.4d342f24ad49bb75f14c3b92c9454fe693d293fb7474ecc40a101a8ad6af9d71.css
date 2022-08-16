@@ -3,35 +3,27 @@ body {
   background-color: #202124;
 }
 
-::-moz-selection {
-  background: dimgray;
-  color: #fff;
-  text-shadow: none;
-}
-
-::selection {
-  background: dimgray;
-  color: #fff;
-  text-shadow: none;
-}
-
 hr {
   border-top: 2px dotted var(--darkBordercl);
 }
+
 code {
   background-color: lightblue;
   color: black;
   text-decoration: bold;
   padding: 0.1em 0.2em;
 }
+
 pre {
   background-color: #272822;
   line-height: 1.4;
   overflow-x: auto;
   padding: 1em;
 }
+
 blockquote {
-  border-color: var(--darkBordercl);;
+  border-color: var(--darkBordercl);
+  ;
 }
 
 h1,
@@ -42,43 +34,46 @@ h5,
 h6 {
   color: #ddd;
 }
+
 h1::before {
   color: var(--darkMaincolor);
   content: "# ";
 }
+
 h2::before {
   color: var(--darkMaincolor);
   content: "## ";
 }
+
 h3::before {
   color: var(--darkMaincolor);
   content: "### ";
 }
+
 h4::before {
   color: var(--darkMaincolor);
   content: "#### ";
 }
+
 h5::before {
   color: var(--darkMaincolor);
   content: "##### ";
 }
+
 h6::before {
   color: var(--darkMaincolor);
   content: "###### ";
 }
 
 footer {
-  display: flex;
-  align-items: center;
   border-top: 0.2rem solid var(--darkBordercl);
-  padding: 1rem 0rem;
-  margin-top: 2rem;
 }
 
 a {
   border-bottom: 2px solid var(--darkMaincolor);
   color: inherit;
 }
+
 a:hover {
   background-color: var(--darkMaincolor);
   color: black;
@@ -87,6 +82,7 @@ a:hover {
 .site-description a {
   color: #ddd;
 }
+
 .site-description a:hover {
   color: black;
 }
@@ -94,6 +90,7 @@ a:hover {
 .tags a {
   border-bottom: 2px solid var(--darkMaincolor);
 }
+
 .tags a:hover {
   background-color: var(--darkMaincolor);
   color: black;
@@ -112,10 +109,46 @@ a:hover {
 .highlight {
   background-color: #333;
 }
+
 .soc:hover {
   color: black;
 }
+
 .draft-label {
   color: var(--darkMaincolor);
   background-color: blue;
+}
+
+::-webkit-scrollbar {
+  background: #303030;
+}
+
+::-webkit-scrollbar-track {
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+blockquote {
+  color: #999;
+}
+
+.meta {
+  color: #999;
+}
+
+img {
+  border: 3px solid #a0a0a0;
 }
