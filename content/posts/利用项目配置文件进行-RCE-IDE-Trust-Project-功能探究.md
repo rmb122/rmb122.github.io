@@ -6,9 +6,9 @@ tags: [misc]
 
 最近发现在打开 IDEA, VSCode 项目时候, 都增加了 "信任此项目的提示". 结合这些 IDE 的特点, 确实可能存在在打开项目时产生 RCE 的风险, 特别是进行代码审计的安全人员, 会经常打开未知的项目. 正常人肯定不会贸然的执行未知的代码, 但是对于打开项目时这个弹出的框框, 可能并不会特别在意. 接下来分析一些通过这些配置来进行 RCE 的方法.  
 
-![](https://i.loli.net/2021/10/02/ToPQhtryzgDUdCs.png#center)
-
 <!--more-->
+
+![](https://i.loli.net/2021/10/02/ToPQhtryzgDUdCs.png#center)
 
 ## IDEA
 

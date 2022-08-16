@@ -145,7 +145,7 @@ burp 之间的版本只要不是差的很多, 应该是不会有啥差别的, �
 
 实际上要做防御非常简单, 因为这个 header 实际上是 burp 故意吃掉的, 目的是为了[兼容性](https://portswigger.net/burp/documentation/desktop/tools/proxy/options#:~:text=Strip%20Sec%2DWebSocket,uncheck%20this%20option.), 所以只要手动关闭就好了.
 
-![](https://s2.loli.net/2022/08/16/E3rGAgZ1R9dHIif.png#center)
+![](https://s2.loli.net/2022/08/16/MXrxcSJNKBlEksv.png#center)
 
 ## webrtc
 
@@ -261,6 +261,6 @@ fetch('https://target.com/', {
 ```
 
 可以达到的效果如下:  
-![](https://s2.loli.net/2022/08/16/JleN4U1pB9ofROK.gif "GIF 未经加速")
+![](https://s2.loli.net/2022/08/16/JleN4U1pB9ofROK.gif#center "GIF 未经加速")
 
 大概 20 多秒就可以直接把内存打满, burp 会直接卡的动不了. 如果把 wait 等待时间调长那么会更隐蔽, 更极限一点可以注册成 serviceWorker 放在后台偷偷恶心攻击者.
