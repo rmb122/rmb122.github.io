@@ -235,7 +235,7 @@ fetch('http://target.com:19132/').then(async function(response) {
 
 上面已经提到了 HTTP streaming, 实际上请求也是可以 streaming 的, 可以参考 [request streaming](https://developer.chrome.com/articles/fetch-streaming-requests/). 这是一个非常新的功能, 在文章写下的时间 (2022 年 8 月 14 日), 正式版 Chrome 还不支持此功能, 需要使用 Dev 版本. 需要注意请求 streaming 不支持 HTTP/1.x, 也就是说用的不是 `Transfer-encoding: chunked` 而是基于 HTTP/2 自带的流式传输.  
 
-那么自然也是可以用来探测 burp 的, 这里不多赘述了, 有个更有意思的玩法, 那就是利用 burp 会等到请求流结束后才会发送给客户端的特性, 我们完全可以利用请求流的特点 DoS burp, 不断发送垃圾数据让 burp OOM. 而在以往没有流式传输的情况下, 只能在浏览器端通过死循环发送大量短字符串给 burp, 或者一次性构造超大字符串发送给 burp, 但不管采取哪种方法, 首先 OOM 的只会是浏览器而不是 burp, 同时受害者也会非常快的发现. 而在有流式传输的情况下, 单次请求就可以打满 burp 的内存上限, 而且由于是在单次请求内, java 也是无法 gc 的, 只能眼睁睁的看着内存被占满. 这样使得浏览器占用的资源远远小于 burp, 让 DoS 变的有实际意义.
+那么自然也是可以用来探测 burp 的, 这里不多赘述了, 有个更有意思的玩法, 那就是利用 burp 会等到请求流结束后才会发送给客户端的特性, 我们完全可以利用请求流的特点 DoS burp, 不断发送垃圾数据让 burp OOM. 而在以往没有流式传输的情况下, 只能在浏览器端通过死循环发送大量短字符串给 burp, 或者一次性构造超大字符串发送给 burp, 但不管采取哪种方法, 首先 OOM 的只会是浏览器而不是 burp, 同时受害者也会非常快的发现浏览器运行的页面存在问题. 而在有流式传输的情况下, 单次请求就可以打满 burp 的内存上限, 而且由于是在单次请求内, java 也是无法 gc 掉这个请求下的数据的, 只能眼睁睁的看着内存被占满. 这样使得浏览器占用的资源远远小于 burp, 让 DoS 变的有实际意义, 只要多来几次 burp 就会直接崩掉.
 
 比如以下代码:  
 ```js
@@ -243,6 +243,7 @@ let veryLoooooongString = 'abcdddddd'.repeat(6553500);
 const stream = new ReadableStream({
   async start(controller) {
     while (1) {
+        await wait(0);
         controller.enqueue(veryLoooooongString);
     }
   },

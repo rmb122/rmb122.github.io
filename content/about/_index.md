@@ -23,10 +23,10 @@ Master student @UCAS, CTF player @[NeSE](https://nese.team/).
 ## PGP
 
 ```
-# rmb122 @ rmb122-laptop in ~ [16:09:42]
-$ gpg --search-keys 33C0E93F38ED926DEA1369FF0040C089F08E1E38
+# rmb122 @ rmb122-laptop in ~ [12:04:12]
+$ gpg --search-keys 59C2DC64CC82C392
 gpg: data source: https://162.213.33.9:443
-(1)	rmb122 <me@rmb122.com>
-	  2048 bit RSA key 0040C089F08E1E38, 创建于：2020-02-29
-Keys 1-1 of 1 for "33C0E93F38ED926DEA1369FF0040C089F08E1E38".  输入数字以选择，输入 N 翻页，输入 Q 退出 >
+(1)	me(at)rmb122.com <me(at)rmb122.com>
+	  4096 bit RSA key 59C2DC64CC82C392, 创建于：2022-08-17
+Keys 1-1 of 1 for "59C2DC64CC82C392".  输入数字以选择，输入 N 翻页，输入 Q 退出 >
 ```
