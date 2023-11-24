@@ -12,13 +12,13 @@ layout: "single"
 * li: https://blog.iamli.cc/
 * Eric: https://ericsmoon.github.io/
 * 陆队: https://blog.zeddyu.info/
-* LFY: https://lfysec.top
 * licy183: https://www.uchkks.cn/
+* WYB: https://www.weiyubo.top/
+* evoA: https://evoa.app/
 
 # 归档
 
 这里是一些曾经可以打开的链接, 期待它们主人的回归
 
 * xnianq: http[://]xnianq[.]cn/
-* WYB: https[://]www[.]weiyubo[.]top/
-* evoA: https[://]evoa[.]me/
+* LFY: https[://]lfysec[.]top/
