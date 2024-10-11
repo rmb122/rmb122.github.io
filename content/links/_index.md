@@ -14,7 +14,6 @@ layout: "single"
 * 陆队: https://blog.zeddyu.info/
 * licy183: https://www.uchkks.cn/
 * WYB: https://www.weiyubo.top/
-* evoA: https://evoa.app/
 
 # 归档
 
@@ -22,3 +21,4 @@ layout: "single"
 
 * xnianq: http[://]xnianq[.]cn/
 * LFY: https[://]lfysec[.]top/
+* evoA: https://evoa.app/
