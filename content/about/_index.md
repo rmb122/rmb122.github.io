@@ -6,7 +6,7 @@ type: "page"
 layout: "single"
 ---
 
-Master student @UCAS, CTF player @[NeSE](https://nese.team/).
+Former CTF player @[NeSE](https://nese.team/) and @[C1Sec](https://c1sec.club).
 
 ## 有趣的话
 
