@@ -19,6 +19,6 @@ layout: "single"
 
 这里是一些曾经可以打开的链接, 期待它们主人的回归
 
-* xnianq: http[://]xnianq[.]cn/
+* xnianq: https[://]xnianq[.]cn/
 * LFY: https[://]lfysec[.]top/
-* evoA: https://evoa.app/
+* evoA: https[://]evoa[.]app/
