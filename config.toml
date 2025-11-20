@@ -11,7 +11,7 @@ disablePathToLower = true
 googleAnalytics = 'G-1MH3QGWHV5'
 
 [permalinks]
-posts = '/:year/:month/:day/:filename/'
+posts = '/:year/:month/:day/:contentbasename/'
 
 [author]
 name = "rmb122"
